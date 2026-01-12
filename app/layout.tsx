@@ -1,43 +1,48 @@
 import type { Metadata } from "next";
 import { Geist, Geist_Mono, Inter } from "next/font/google";
 import "./globals.css";
+import NextAuthSessionProvider from "@/components/session-provider";
 import { cn } from "@/lib/utils";
 
 const inter = Inter({ subsets: ["latin"], variable: "--font-sans" });
 
 const geistSans = Geist({
-  variable: "--font-geist-sans",
-  subsets: ["latin"],
+	variable: "--font-geist-sans",
+	subsets: ["latin"],
 });
 
 const geistMono = Geist_Mono({
-  variable: "--font-geist-mono",
-  subsets: ["latin"],
+	variable: "--font-geist-mono",
+	subsets: ["latin"],
 });
 
 export const metadata: Metadata = {
-  title: "Kumacare (Clinic)",
-  description: "Kumacare (Clinic) - Patient Management System",
-  icons: {
-    icon: [
-      { url: "/favicon/light.png", media: "(prefers-color-scheme: light)" },
-      { url: "/favicon/dark.png", media: "(prefers-color-scheme: dark)" },
-    ],
-  },
+	title: "Kumacare (Clinic)",
+	description: "Kumacare (Clinic) - Patient Management System",
+	icons: {
+		icon: [
+			{ url: "/favicon/light.png", media: "(prefers-color-scheme: light)" },
+			{ url: "/favicon/dark.png", media: "(prefers-color-scheme: dark)" },
+		],
+	},
 };
 
 export default function RootLayout({
-  children,
+	children,
 }: Readonly<{
-  children: React.ReactNode;
+	children: React.ReactNode;
 }>) {
-  return (
-    <html lang="en" className={inter.variable}>
-      <body
-        className={cn(geistSans.variable, geistMono.variable, "antialiased overflow-x-clip")}
-      >
-        {children}
-      </body>
-    </html>
-  );
+	return (
+		<html lang="en" className={inter.variable}>
+			<body
+				className={cn(
+					geistSans.variable,
+					geistMono.variable,
+					"antialiased overflow-x-clip",
+				)}
+			>
+				<NextAuthSessionProvider>{children}</NextAuthSessionProvider>
+			</body>
+		</html>
+	);
 }

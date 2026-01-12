@@ -40,6 +40,28 @@ model Session {
   user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
 }
 
+model Clinic {
+  id        String   @id @default(cuid())
+  name      String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  users     User[] // A clinic can have multiple users
+}
+
+model Permission {
+  id          String  @id @default(cuid())
+  name        String  @unique // e.g., "patient:create", "settings:view"
+  description String?
+  roles       Role[]
+}
+
+model Role {
+  id          String       @id @default(cuid())
+  name        String       @unique // e.g., "CLINIC_MANAGER", "DOCTOR"
+  users       User[]
+  permissions Permission[]
+}
+
 model User {
   id                   String    @id @default(cuid())
   name                 String?
@@ -51,6 +73,16 @@ model User {
   passwordResetExpires DateTime?
   accounts             Account[]
   sessions             Session[]
+
+  // Additions for multi-tenancy and RBAC
+  clinicId String?
+  clinic   Clinic? @relation(fields: [clinicId], references: [id])
+
+  roleId String?
+  role   Role?   @relation(fields: [roleId], references: [id])
+
+  @@index([clinicId])
+  @@index([roleId])
 }
 
 model VerificationToken {
@@ -86,12 +118,12 @@ enum BloodGroup {
 }
 
 model Patient {
-  id                        String        @id @default(cuid())
+  id                        String         @id @default(cuid())
   phone                     String
   name                      String
   gender                    Gender
   dob                       DateTime
-  is_dob_estimate           Boolean       @default(false)
+  is_dob_estimate           Boolean        @default(false)
   city                      String?
   address                   String?
   pin_code                  String?
@@ -101,16 +133,16 @@ model Patient {
   spouse_blood_group        BloodGroup?
   spouse_name               String?
   referred_by               String?
-  email                     String?       @unique
+  email                     String?        @unique
   how_did_you_hear_about_us String?
-  care_of                   String?       // "C/O"
+  care_of                   String? // "C/O"
   occupation                String?
   tag                       String?
   alternative_phone         String?
-  aadhar_number             String?       @unique
+  aadhar_number             String?        @unique
   image_url                 String?
-  documents                 Json?         // To store a list of document URLs
+  documents                 Json? // To store a list of document URLs
 
-  createdAt                 DateTime      @default(now())
-  updatedAt                 DateTime      @updatedAt
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 }
