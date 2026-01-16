@@ -84,15 +84,8 @@ export async function acceptInvitation(invitationId: string) {
   });
 
   // Notify the inviter
-  await createNotification(
-      invitation.inviterId,
-      "Invitation Accepted",
-      `${session.user.name || session.user.email} has accepted your invitation.`,
-      "INVITE_ACCEPTED"
-  );
-
   revalidatePath("/dashboard");
-  return { success: true };
+  return { success: true, clinicId: invitation.clinicId };
 }
 
 export async function declineInvitation(invitationId: string) {

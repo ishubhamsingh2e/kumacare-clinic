@@ -2,6 +2,7 @@
 
 import { Button } from "@/components/ui/button";
 import { acceptInvitation, declineInvitation } from "@/lib/actions/clinic";
+import { useSession } from "next-auth/react";
 import { useTransition } from "react";
 import { toast } from "sonner";
 
@@ -12,6 +13,7 @@ export function NotificationActions({
   notification: any;
   canAction: boolean;
 }) {
+  const { update } = useSession();
   const [isAccepting, startAcceptTransition] = useTransition();
   const [isDeclining, startDeclineTransition] = useTransition();
 
@@ -21,6 +23,7 @@ export function NotificationActions({
         const result = await acceptInvitation(notification.referenceId);
         if (result.success) {
           toast.success("Invitation accepted!");
+          await update({ activeClinicId: result.clinicId });
         } else {
           toast.error("Failed to accept invitation.");
         }
@@ -36,6 +39,7 @@ export function NotificationActions({
         const result = await declineInvitation(notification.referenceId);
         if (result.success) {
           toast.success("Invitation declined.");
+          await update();
         } else {
           toast.error("Failed to decline invitation.");
         }
