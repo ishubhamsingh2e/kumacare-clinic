@@ -57,14 +57,15 @@ import { io as socketClient } from "socket.io-client";
 
 const SOCKET_URL = process.env.SOCKET_INTERNAL_URL || "http://localhost:3001";
 
-export async function createNotification(userId: string, title: string, message: string, type: string = "INFO", link?: string) {
+export async function createNotification(userId: string, title: string, message: string, type: string = "INFO", referenceId?: string, link?: string) {
     const notification = await prisma.notification.create({
         data: {
             userId,
             title,
             message,
             type,
-            link
+            link,
+            referenceId,
         }
     });
 

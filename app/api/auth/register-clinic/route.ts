@@ -6,8 +6,9 @@ import { z } from "zod";
 const registerClinicSchema = z.object({
   clinicName: z.string().min(3, "Clinic name must be at least 3 characters"),
   userName: z.string().min(3, "User name must be at least 3 characters"),
-  email: z.email("Invalid email address"),
+  email: z.string().email("Invalid email address"),
   password: z.string().min(6, "Password must be at least 6 characters"),
+  title: z.string().min(1, "Title is required"),
 });
 
 export async function POST(req: Request) {
@@ -19,7 +20,7 @@ export async function POST(req: Request) {
       return new NextResponse(result.error.issues[0].message, { status: 400 });
     }
 
-    const { clinicName, userName, email, password } = result.data;
+    const { clinicName, userName, email, password, title } = result.data;
 
     const clinicManagerRole = await prisma.role.findUnique({
       where: { name: "CLINIC_MANAGER" },
@@ -40,9 +41,19 @@ export async function POST(req: Request) {
       if (!user) {
         user = await tx.user.create({
           data: {
+            title,
             name: userName,
             email,
             password: hashedPassword,
+          },
+        });
+      } else {
+        // If user exists, update their name and title
+        user = await tx.user.update({
+          where: { id: user.id },
+          data: {
+            name: userName, // Update name as well, since it's an admin registration
+            title: title, // Update title
           },
         });
       }

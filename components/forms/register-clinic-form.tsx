@@ -16,6 +16,13 @@ import {
   FieldLabel,
 } from "@/components/ui/field";
 import { Input } from "@/components/ui/input";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import Link from "next/link";
 import { useState } from "react";
 import { useRouter } from "next/navigation";
@@ -27,6 +34,7 @@ export function RegisterClinicForm({
 }: React.ComponentProps<"div">) {
   const router = useRouter();
   const [clinicName, setClinicName] = useState("");
+  const [title, setTitle] = useState("");
   const [userName, setUserName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -39,9 +47,19 @@ export function RegisterClinicForm({
     setLoading(true);
     setErrors({});
 
+    if (!title) {
+      setErrors((prev) => ({ ...prev, title: "Title is required." }));
+      toast.error("Please select a title.");
+      setLoading(false);
+      return;
+    }
+
     if (password !== confirmPassword) {
       toast.error("Passwords do not match");
-      setErrors({ confirmPassword: "Passwords do not match" });
+      setErrors((prev) => ({
+        ...prev,
+        confirmPassword: "Passwords do not match",
+      }));
       setLoading(false);
       return;
     }
@@ -52,7 +70,7 @@ export function RegisterClinicForm({
         headers: {
           "Content-Type": "application/json",
         },
-        body: JSON.stringify({ clinicName, userName, email, password }),
+        body: JSON.stringify({ clinicName, title, userName, email, password }),
       });
 
       if (res.ok) {
@@ -94,17 +112,42 @@ export function RegisterClinicForm({
                   onChange={(e) => setClinicName(e.target.value)}
                 />
               </Field>
-              <Field>
-                <FieldLabel htmlFor="userName">Admin Name</FieldLabel>
-                <Input
-                  id="userName"
-                  type="text"
-                  placeholder="Dr. John Doe"
-                  required
-                  value={userName}
-                  onChange={(e) => setUserName(e.target.value)}
-                />
-              </Field>
+              <div className="grid grid-cols-1 gap-4 md:grid-cols-6">
+                <div className="md:col-span-2">
+                  <Field>
+                    <FieldLabel htmlFor="title">Title</FieldLabel>
+                    <Select onValueChange={setTitle} value={title}>
+                      <SelectTrigger id="title">
+                        <SelectValue placeholder="title" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="Mr.">Mr.</SelectItem>
+                        <SelectItem value="Ms.">Ms.</SelectItem>
+                        <SelectItem value="Mrs.">Mrs.</SelectItem>
+                        <SelectItem value="Dr.">Dr.</SelectItem>
+                      </SelectContent>
+                    </Select>
+                    {errors.title && (
+                      <FieldDescription className="text-red-500">
+                        {errors.title}
+                      </FieldDescription>
+                    )}
+                  </Field>
+                </div>
+                <div className="md:col-span-4">
+                  <Field>
+                    <FieldLabel htmlFor="userName">Admin Name</FieldLabel>
+                    <Input
+                      id="userName"
+                      type="text"
+                      placeholder="Dr. John Doe"
+                      required
+                      value={userName}
+                      onChange={(e) => setUserName(e.target.value)}
+                    />
+                  </Field>
+                </div>
+              </div>
               <Field>
                 <FieldLabel htmlFor="email">Email</FieldLabel>
                 <Input
@@ -139,16 +182,16 @@ export function RegisterClinicForm({
                       value={confirmPassword}
                       onChange={(e) => setConfirmPassword(e.target.value)}
                     />
+                    {errors.confirmPassword && (
+                      <FieldDescription className="text-red-500">
+                        {errors.confirmPassword}
+                      </FieldDescription>
+                    )}
                   </Field>
                 </div>
                 <FieldDescription>
                   Must be at least 6 characters long.
                 </FieldDescription>
-                {errors.confirmPassword && (
-                  <FieldDescription className="text-red-500">
-                    {errors.confirmPassword}
-                  </FieldDescription>
-                )}
               </Field>
               <Field>
                 <Button type="submit" disabled={loading}>
@@ -165,7 +208,7 @@ export function RegisterClinicForm({
           </form>
         </CardContent>
       </Card>
-       <FieldDescription className="px-6 text-center">
+      <FieldDescription className="px-6 text-center">
         By clicking continue, you agree to our{" "}
         <Link href="#" className="underline">
           Terms of Service

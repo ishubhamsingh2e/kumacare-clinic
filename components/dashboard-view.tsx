@@ -15,7 +15,7 @@ export default function DashboardView({
 }: DashboardViewProps) {
   return (
     <div className="flex h-full w-full flex-col">
-      <header className="bg-background flex h-16 shrink-0 items-center gap-2 border-b px-6">
+      <header className="bg-background flex h-16 shrink-0 items-center gap-2 rounded-t-2xl border-b px-6">
         <div className="flex w-full items-center justify-between">
           <div className="flex items-center gap-2">
             <SidebarTrigger className="-ml-1" />

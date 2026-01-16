@@ -18,6 +18,7 @@ import { getPendingInvitations } from "@/lib/actions/clinic";
 import { UserManagementClient } from "@/components/admin/user-management-client";
 import DashboardView from "@/components/dashboard-view";
 import { SettingsTabsClient } from "@/components/settings/settings-tabs-client";
+import { ClinicManagementTab } from "@/components/settings/clinic-management-tab";
 
 async function getUsers(activeClinicId: string) {
   const users = await prisma.user.findMany({
@@ -68,6 +69,10 @@ export default async function SettingsPage() {
     redirect("/login");
   }
 
+  const isManager =
+    session.user.role === "CLINIC_MANAGER" ||
+    session.user.role === "SUPER_ADMIN";
+
   const [dbUser, canManageUsers] = await Promise.all([
     prisma.user.findUnique({
       where: { id: session.user.id },
@@ -94,14 +99,15 @@ export default async function SettingsPage() {
   let ownerId: string | null = null;
 
   if (canManageUsers && user.activeClinicId) {
-    const [usersData, rolesData, invitationsData, clinicData] = await Promise.all([
-      getUsers(user.activeClinicId),
-      getRoles(),
-      getPendingInvitations(),
-      prisma.clinic.findUnique({
-        where: { id: user.activeClinicId },
-      }),
-    ]);
+    const [usersData, rolesData, invitationsData, clinicData] =
+      await Promise.all([
+        getUsers(user.activeClinicId),
+        getRoles(),
+        getPendingInvitations(),
+        prisma.clinic.findUnique({
+          where: { id: user.activeClinicId },
+        }),
+      ]);
     users = usersData;
     roles = rolesData;
     invitations = invitationsData;
@@ -177,12 +183,16 @@ export default async function SettingsPage() {
     </div>
   );
 
+  const clinicManagementContent = <ClinicManagementTab />;
+
   return (
     <DashboardView title="Settings">
       <SettingsTabsClient
         accountContent={accountContent}
         usersContent={usersContent}
         canManageUsers={canManageUsers}
+        clinicManagementContent={clinicManagementContent}
+        isManager={isManager}
       />
     </DashboardView>
   );

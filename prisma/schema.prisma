@@ -171,16 +171,19 @@ model User {
 }
 
 model Notification {
-  id        String   @id @default(cuid())
-  userId    String
-  title     String
-  message   String
-  read      Boolean  @default(false)
-  type      String   @default("INFO") // INFO, INVITE_RECEIVED, etc.
-  link      String?
-  createdAt DateTime @default(now())
+  id          String   @id @default(cuid())
+  userId      String
+  title       String
+  message     String
+  read        Boolean  @default(false)
+  type        String   @default("INFO") // INFO, INVITE_RECEIVED, etc.
+  link        String?
+  referenceId String?
+  createdAt   DateTime @default(now())
 
-  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId, referenceId])
 }
 
 model NotificationSettings {

@@ -16,6 +16,13 @@ import {
   FieldLabel,
 } from "@/components/ui/field";
 import { Input } from "@/components/ui/input";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import Link from "next/link";
 import { useState } from "react";
 import { useRouter } from "next/navigation";
@@ -26,6 +33,7 @@ export function SignupForm({
   ...props
 }: React.ComponentProps<"div">) {
   const router = useRouter();
+  const [title, setTitle] = useState("");
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -37,6 +45,13 @@ export function SignupForm({
     e.preventDefault();
     setLoading(true);
     setErrors({});
+
+    if (!title) {
+      setErrors((prev) => ({ ...prev, title: "Title is required." }));
+      toast.error("Please select a title.");
+      setLoading(false);
+      return;
+    }
 
     if (password !== confirmPassword) {
       setErrors({ confirmPassword: "Passwords do not match" });
@@ -51,7 +66,7 @@ export function SignupForm({
         headers: {
           "Content-Type": "application/json",
         },
-        body: JSON.stringify({ name, email, password }),
+        body: JSON.stringify({ title, name, email, password }),
       });
 
       if (res.ok) {
@@ -82,17 +97,42 @@ export function SignupForm({
         <CardContent>
           <form onSubmit={handleSubmit}>
             <FieldGroup>
-              <Field>
-                <FieldLabel htmlFor="name">Full Name</FieldLabel>
-                <Input
-                  id="name"
-                  type="text"
-                  placeholder="John Doe"
-                  required
-                  value={name}
-                  onChange={(e) => setName(e.target.value)}
-                />
-              </Field>
+              <div className="grid grid-cols-1 gap-4 md:grid-cols-6">
+                <div className="md:col-span-2">
+                  <Field>
+                    <FieldLabel htmlFor="title">Title</FieldLabel>
+                    <Select onValueChange={setTitle} value={title}>
+                      <SelectTrigger id="title">
+                        <SelectValue placeholder="title" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="Mr.">Mr.</SelectItem>
+                        <SelectItem value="Ms.">Ms.</SelectItem>
+                        <SelectItem value="Mrs.">Mrs.</SelectItem>
+                        <SelectItem value="Dr.">Dr.</SelectItem>
+                      </SelectContent>
+                    </Select>
+                    {errors.title && (
+                      <FieldDescription className="text-red-500">
+                        {errors.title}
+                      </FieldDescription>
+                    )}
+                  </Field>
+                </div>
+                <div className="md:col-span-4">
+                  <Field>
+                    <FieldLabel htmlFor="name">Full Name</FieldLabel>
+                    <Input
+                      id="name"
+                      type="text"
+                      placeholder="John Doe"
+                      required
+                      value={name}
+                      onChange={(e) => setName(e.target.value)}
+                    />
+                  </Field>
+                </div>
+              </div>
               <Field>
                 <FieldLabel htmlFor="email">Email</FieldLabel>
                 <Input
@@ -148,9 +188,14 @@ export function SignupForm({
                     Sign in
                   </Link>
                 </FieldDescription>
-                <div className="text-center text-sm mt-2">
-                  <span className="text-muted-foreground">Owning a clinic? </span>
-                  <Link href="/register-clinic" className="underline font-medium">
+                <div className="mt-2 text-center text-sm">
+                  <span className="text-muted-foreground">
+                    Owning a clinic?{" "}
+                  </span>
+                  <Link
+                    href="/register-clinic"
+                    className="font-medium underline"
+                  >
                     Register your Clinic
                   </Link>
                 </div>

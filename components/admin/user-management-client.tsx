@@ -39,14 +39,24 @@ import {
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
 import { Badge } from "@/components/ui/badge";
-import { Card, CardContent, CardHeader, CardTitle, CardFooter } from "@/components/ui/card";
+import {
+  Card,
+  CardContent,
+  CardHeader,
+  CardTitle,
+  CardFooter,
+} from "@/components/ui/card";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import {
   createClinicUser,
   deleteClinicUser,
   updateClinicUserRole,
 } from "@/lib/actions/user";
-import { inviteUserToClinic, cancelInvitation, transferClinicOwnership } from "@/lib/actions/clinic";
+import {
+  inviteUserToClinic,
+  cancelInvitation,
+  transferClinicOwnership,
+} from "@/lib/actions/clinic";
 import { Role } from "@/lib/generated/prisma/client";
 import { useState } from "react";
 import { useSession } from "next-auth/react";
@@ -76,7 +86,9 @@ export function UserManagementClient({
   const [isInviteOpen, setIsInviteOpen] = useState(false);
   const [manageUser, setManageUser] = useState<DisplayUser | null>(null);
   const [userToDelete, setUserToDelete] = useState<string | null>(null);
-  const [userToTransfer, setUserToTransfer] = useState<DisplayUser | null>(null);
+  const [userToTransfer, setUserToTransfer] = useState<DisplayUser | null>(
+    null,
+  );
 
   const allItems = [...users, ...invitations];
 
@@ -124,8 +136,8 @@ export function UserManagementClient({
       // Optimistically update the local state or let revalidatePath handle it
       // For now, we rely on the server action revalidating the path
       if (manageUser && manageUser.id === userId) {
-         // Close dialog to refresh or we could try to update local state if we had it fully controlled
-         setManageUser(null);
+        // Close dialog to refresh or we could try to update local state if we had it fully controlled
+        setManageUser(null);
       }
     } else {
       toast.error(res.message);
@@ -242,41 +254,58 @@ export function UserManagementClient({
           <Card key={item.id} className="overflow-hidden">
             <CardHeader className="flex flex-row items-start gap-4 space-y-0 pb-2">
               <Avatar className="h-12 w-12 rounded-lg border">
-                <AvatarImage src={item.image || ""} alt={item.name || ""} className="rounded-lg" />
+                <AvatarImage
+                  src={item.image || ""}
+                  alt={item.name || ""}
+                  className="rounded-lg"
+                />
                 <AvatarFallback className="rounded-lg">
                   <User className="h-6 w-6" />
                 </AvatarFallback>
               </Avatar>
               <div className="flex flex-col gap-1 overflow-hidden">
                 <div className="flex items-center gap-2 overflow-hidden">
-                  <h3 className="font-semibold leading-none truncate" title={item.name || "N/A"}>
+                  <h3
+                    className="truncate leading-none font-semibold"
+                    title={item.name || "N/A"}
+                  >
                     {item.name || "N/A"}
                   </h3>
                   {item.id === ownerId && (
-                    <Badge variant="secondary" className="h-4 text-[10px] px-1 bg-yellow-100 text-yellow-800 border-yellow-200">Owner</Badge>
+                    <Badge
+                      variant="secondary"
+                      className="h-4 border-yellow-200 bg-yellow-100 px-1 text-[10px] text-yellow-800"
+                    >
+                      Owner
+                    </Badge>
                   )}
                 </div>
-                <p className="text-muted-foreground text-sm truncate" title={item.email || ""}>
+                <p
+                  className="text-muted-foreground truncate text-sm"
+                  title={item.email || ""}
+                >
                   {item.email}
                 </p>
               </div>
             </CardHeader>
             <CardContent className="space-y-4 pb-2">
               <div className="flex items-center gap-2 text-sm">
-                <Badge variant={item.status === "ACTIVE" ? "default" : "secondary"}>
+                <Badge
+                  variant={item.status === "ACTIVE" ? "default" : "secondary"}
+                >
                   {item.status}
                 </Badge>
                 {item.role && (
-                   <Badge variant="outline" className="font-normal">
-                      {item.role.name}
-                   </Badge>
+                  <Badge variant="outline" className="font-normal">
+                    {item.role.name}
+                  </Badge>
                 )}
               </div>
             </CardContent>
             <CardFooter className="bg-muted/50 p-4">
-              <Button 
-                variant="outline" 
-                className="w-full" 
+              <Button
+                variant="outline"
+                className="w-full"
                 onClick={() => setManageUser(item)}
               >
                 <Settings className="mr-2 h-4 w-4" />
@@ -288,8 +317,11 @@ export function UserManagementClient({
       </div>
 
       {/* Manage User Dialog */}
-      <Dialog open={!!manageUser} onOpenChange={(open) => !open && setManageUser(null)}>
-        <DialogContent className="sm:max-w-[425px]">
+      <Dialog
+        open={!!manageUser}
+        onOpenChange={(open) => !open && setManageUser(null)}
+      >
+        <DialogContent className="sm:max-w-106.25">
           <DialogHeader>
             <DialogTitle>Manage Access</DialogTitle>
             <DialogDescription>
@@ -301,19 +333,31 @@ export function UserManagementClient({
             <div className="grid gap-6 py-4">
               <div className="flex items-center gap-4">
                 <Avatar className="h-16 w-16 rounded-lg border">
-                  <AvatarImage src={manageUser.image || ""} className="rounded-lg" />
+                  <AvatarImage
+                    src={manageUser.image || ""}
+                    className="rounded-lg"
+                  />
                   <AvatarFallback className="rounded-lg">
-                     <User className="h-8 w-8" />
+                    <User className="h-8 w-8" />
                   </AvatarFallback>
                 </Avatar>
                 <div>
                   <div className="flex items-center gap-2">
-                    <h4 className="font-semibold text-lg">{manageUser.name || "N/A"}</h4>
+                    <h4 className="text-lg font-semibold">
+                      {manageUser.name || "N/A"}
+                    </h4>
                     {manageUser.id === ownerId && (
-                      <Badge variant="secondary" className="bg-yellow-100 text-yellow-800 border-yellow-200">Owner</Badge>
+                      <Badge
+                        variant="secondary"
+                        className="border-yellow-200 bg-yellow-100 text-yellow-800"
+                      >
+                        Owner
+                      </Badge>
                     )}
                   </div>
-                  <p className="text-muted-foreground text-sm">{manageUser.email}</p>
+                  <p className="text-muted-foreground text-sm">
+                    {manageUser.email}
+                  </p>
                 </div>
               </div>
 
@@ -322,8 +366,13 @@ export function UserManagementClient({
                 {manageUser.status === "ACTIVE" ? (
                   <Select
                     defaultValue={manageUser.roleId || undefined}
-                    onValueChange={(val) => handleRoleChange(manageUser.id, val)}
-                    disabled={manageUser.id === ownerId || manageUser.id === session?.user?.id}
+                    onValueChange={(val) =>
+                      handleRoleChange(manageUser.id, val)
+                    }
+                    disabled={
+                      manageUser.id === ownerId ||
+                      manageUser.id === session?.user?.id
+                    }
                   >
                     <SelectTrigger>
                       <SelectValue placeholder="Select a role" />
@@ -337,58 +386,74 @@ export function UserManagementClient({
                     </SelectContent>
                   </Select>
                 ) : (
-                   <div className="border rounded-md px-3 py-2 text-sm text-muted-foreground bg-muted/50">
-                      Role changes only available for active users. Re-invite to change role.
-                   </div>
+                  <div className="text-muted-foreground bg-muted/50 rounded-md border px-3 py-2 text-sm">
+                    Role changes only available for active users. Re-invite to
+                    change role.
+                  </div>
                 )}
-                {(manageUser.id === ownerId || manageUser.id === session?.user?.id) && (
-                  <p className="text-[10px] text-muted-foreground">
-                    Fail-safe: Role cannot be changed for the owner or yourself.
+                {(manageUser.id === ownerId ||
+                  manageUser.id === session?.user?.id) && (
+                  <p className="text-muted-foreground text-[10px]">
+                    Role cannot be changed for the owner or yourself.
                   </p>
                 )}
               </div>
 
               <div className="space-y-2">
                 <Label>Permissions</Label>
-                <div className="flex flex-wrap gap-1.5 p-3 rounded-md border bg-muted/20 min-h-[60px]">
+                <div className="bg-muted/20 flex min-h-15 flex-wrap gap-1.5 rounded-md border p-3">
                   {manageUser.role?.permissions?.length ? (
                     manageUser.role.permissions.map((p) => (
-                      <Badge key={p.name} variant="secondary" className="text-xs">
-                         {p.name}
+                      <Badge
+                        key={p.name}
+                        variant="secondary"
+                        className="text-xs"
+                      >
+                        {p.name}
                       </Badge>
                     ))
                   ) : (
-                    <span className="text-muted-foreground text-sm italic">No specific permissions</span>
+                    <span className="text-muted-foreground text-sm italic">
+                      No specific permissions
+                    </span>
                   )}
                 </div>
               </div>
-              
+
               <div className="grid gap-2">
-                 {session?.user?.id === ownerId && manageUser.id !== ownerId && manageUser.status === "ACTIVE" && (
-                    <Button 
-                      variant="outline" 
-                      className="w-full border-yellow-200 hover:bg-yellow-50 text-yellow-700"
+                {session?.user?.id === ownerId &&
+                  manageUser.id !== ownerId &&
+                  manageUser.status === "ACTIVE" && (
+                    <Button
+                      variant="outline"
+                      className="w-full border-yellow-200 text-yellow-700 hover:bg-yellow-50"
                       onClick={() => setUserToTransfer(manageUser)}
                     >
                       <Shield className="mr-2 h-4 w-4" />
                       Transfer Clinic Ownership
                     </Button>
-                 )}
-                 
-                 <Button 
-                    variant="destructive" 
-                    className="w-full"
-                    onClick={() => setUserToDelete(manageUser.id)}
-                    disabled={manageUser.id === ownerId || manageUser.id === session?.user?.id}
-                 >
-                    {manageUser.status === "ACTIVE" ? "Remove User from Clinic" : "Cancel Invitation"}
-                 </Button>
-                 
-                 {(manageUser.id === ownerId || manageUser.id === session?.user?.id) && (
-                    <p className="text-center text-[10px] text-muted-foreground">
-                      Fail-safe: Owner or self cannot be removed.
-                    </p>
-                 )}
+                  )}
+
+                <Button
+                  variant="destructive"
+                  className="w-full"
+                  onClick={() => setUserToDelete(manageUser.id)}
+                  disabled={
+                    manageUser.id === ownerId ||
+                    manageUser.id === session?.user?.id
+                  }
+                >
+                  {manageUser.status === "ACTIVE"
+                    ? "Remove User from Clinic"
+                    : "Cancel Invitation"}
+                </Button>
+
+                {(manageUser.id === ownerId ||
+                  manageUser.id === session?.user?.id) && (
+                  <p className="text-muted-foreground text-center text-[10px]">
+                    Owner or self cannot be removed.
+                  </p>
+                )}
               </div>
             </div>
           )}
@@ -404,8 +469,10 @@ export function UserManagementClient({
           <AlertDialogHeader>
             <AlertDialogTitle>Transfer Clinic Ownership?</AlertDialogTitle>
             <AlertDialogDescription>
-              Are you sure you want to transfer ownership to <strong>{userToTransfer?.name || userToTransfer?.email}</strong>?
-              You will lose administrative control over the clinic and will no longer be able to manage this user.
+              Are you sure you want to transfer ownership to{" "}
+              <strong>{userToTransfer?.name || userToTransfer?.email}</strong>?
+              You will lose administrative control over the clinic and will no
+              longer be able to manage this user.
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
@@ -429,8 +496,9 @@ export function UserManagementClient({
           <AlertDialogHeader>
             <AlertDialogTitle>Are you absolutely sure?</AlertDialogTitle>
             <AlertDialogDescription>
-              This action will permanently remove the user's access to this clinic or cancel
-              the pending invitation. This action cannot be undone.
+              This action will permanently remove the user's access to this
+              clinic or cancel the pending invitation. This action cannot be
+              undone.
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>

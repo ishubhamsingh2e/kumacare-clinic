@@ -4,7 +4,7 @@ import * as React from "react";
 import { useSession } from "next-auth/react";
 import { usePermissions } from "@/hooks/use-permissions";
 import { PERMISSIONS } from "@/lib/permissions";
-import { LayoutDashboard, User, Shield, LockKeyhole, Building2, Settings } from "lucide-react";
+import { LayoutDashboard, User, Shield, LockKeyhole } from "lucide-react";
 
 import { NavMain } from "@/components/nav-main";
 import { NavSecondary } from "@/components/nav-secondary";
@@ -32,20 +32,7 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
       url: "/dashboard/patients",
       icon: User,
     },
-    {
-      title: "Settings",
-      url: "/dashboard/settings",
-      icon: Settings,
-    },
   ];
-
-  if (session?.user?.role === "CLINIC_MANAGER" || session?.user?.role === "SUPER_ADMIN") {
-    navMain.push({
-      title: "Clinic Profile",
-      url: "/dashboard/clinic",
-      icon: Building2,
-    });
-  }
 
   if (hasPermission(PERMISSIONS.CLINIC_OWNER_MANAGE)) {
     navMain.push({
@@ -70,6 +57,7 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
     name: session?.user?.name ?? "",
     email: session?.user?.email ?? "",
     avatar: session?.user?.image ?? "",
+    title: session?.user?.title ?? "",
   };
 
   return (

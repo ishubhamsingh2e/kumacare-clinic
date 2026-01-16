@@ -61,7 +61,7 @@ export default async function PublicClinicPage({
         ) : (
           <div className="bg-primary/10 h-full w-full" />
         )}
-        <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent" />
+        <div className="absolute inset-0 bg-linear-to-t from-black/60 to-transparent" />
       </div>
 
       {/* Profile Header */}

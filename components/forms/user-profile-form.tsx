@@ -67,8 +67,10 @@ export function UserProfileForm({ user }: UserProfileFormProps) {
     address: user.address || "",
     licenseNumber: user.licenseNumber || "",
   });
-  
-  const [previewUrl, setPreviewUrl] = useState<string | null>(user.image || null);
+
+  const [previewUrl, setPreviewUrl] = useState<string | null>(
+    user.image || null,
+  );
   const [imageFile, setImageFile] = useState<File | null>(null);
 
   const handleChange = (name: string, value: string) => {
@@ -111,20 +113,19 @@ export function UserProfileForm({ user }: UserProfileFormProps) {
 
   return (
     <div className="space-y-6">
-
       <form action={formAction}>
         <div className="space-y-6">
           <div className="flex items-center gap-6">
-            <div className="relative group">
-              <Avatar className="h-24 w-24 border-2 border-border">
+            <div className="group relative">
+              <Avatar className="border-border h-24 w-24 border-2">
                 <AvatarImage src={previewUrl || ""} alt="Profile picture" />
                 <AvatarFallback className="bg-muted">
-                  <User className="h-12 w-12 text-muted-foreground" />
+                  <User className="text-muted-foreground h-12 w-12" />
                 </AvatarFallback>
               </Avatar>
               <Label
                 htmlFor="image-upload"
-                className="absolute bottom-0 right-0 p-1 bg-primary text-primary-foreground rounded-full cursor-pointer hover:bg-primary/90 transition-colors shadow-sm"
+                className="bg-primary text-primary-foreground hover:bg-primary/90 absolute right-0 bottom-0 cursor-pointer rounded-full p-1 shadow-sm transition-colors"
               >
                 <Camera className="h-4 w-4" />
                 <span className="sr-only">Change profile photo</span>
@@ -139,8 +140,8 @@ export function UserProfileForm({ user }: UserProfileFormProps) {
               />
             </div>
             <div className="space-y-1">
-              <h3 className="font-medium text-lg">Profile Photo</h3>
-              <p className="text-sm text-muted-foreground">
+              <h3 className="text-lg font-medium">Profile Photo</h3>
+              <p className="text-muted-foreground text-sm">
                 Click the camera icon to upload a new photo.
                 <br />
                 JPG, GIF or PNG. 1MB max.
@@ -157,7 +158,7 @@ export function UserProfileForm({ user }: UserProfileFormProps) {
                 onValueChange={(val) => handleChange("title", val)}
               >
                 <SelectTrigger id="title" className="w-full">
-                  <SelectValue placeholder="Select title" />
+                  <SelectValue placeholder="title" />
                 </SelectTrigger>
                 <SelectContent>
                   <SelectItem value="Mr.">Mr.</SelectItem>

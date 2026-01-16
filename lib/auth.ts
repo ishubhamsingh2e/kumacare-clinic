@@ -14,6 +14,7 @@ declare module "next-auth" {
       role: string | null;
       permissions: string[];
       clinics: { id: string; name: string; role: string }[];
+      title?: string | null;
     } & DefaultSession["user"];
   }
 }
@@ -99,6 +100,7 @@ export const { auth, handlers, signIn, signOut } = NextAuth({
 
           token.activeClinicId = activeClinicId;
           token.defaultClinicId = dbUser.defaultClinicId;
+          token.title = dbUser.title;
           token.role = activeMembership?.role?.name || null;
           token.permissions =
             activeMembership?.role?.permissions.map((p) => p.name) ?? [];
@@ -118,6 +120,7 @@ export const { auth, handlers, signIn, signOut } = NextAuth({
       session.user.role = token.role as string | null;
       session.user.permissions = token.permissions as string[];
       session.user.clinics = (token.clinics as any) || [];
+      session.user.title = token.title as string | null;
       return session;
     },
   },

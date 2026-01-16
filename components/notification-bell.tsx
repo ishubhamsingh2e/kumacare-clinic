@@ -8,7 +8,10 @@ import {
   PopoverContent,
   PopoverTrigger,
 } from "@/components/ui/popover";
-import { getNotifications, markAllNotificationsAsRead } from "@/lib/actions/notification";
+import {
+  getNotifications,
+  markAllNotificationsAsRead,
+} from "@/lib/actions/notification";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { toast } from "sonner";
 import { Badge } from "@/components/ui/badge";
@@ -44,7 +47,7 @@ export function NotificationBell() {
 
     if (session?.user?.id) {
       socket.connect();
-      
+
       socket.on("connect", () => {
         socket.emit("join-room", session.user.id);
       });
@@ -66,12 +69,10 @@ export function NotificationBell() {
   }, [session?.user?.id, fetchNotifications]);
 
   const handleOpenChange = async (open: boolean) => {
-// ...
     setIsOpen(open);
     if (open && unreadCount > 0) {
       await markAllNotificationsAsRead();
       setUnreadCount(0);
-      // Optimistically update read status
       setNotifications(notifications.map((n) => ({ ...n, read: true })));
     }
   };
@@ -79,7 +80,7 @@ export function NotificationBell() {
   return (
     <Popover open={isOpen} onOpenChange={handleOpenChange}>
       <PopoverTrigger asChild>
-        <Button variant="ghost" size="icon" className="relative">
+        <Button variant="outline" size="icon" className="relative">
           <Bell className="h-5 w-5" />
           {unreadCount > 0 && (
             <Badge
@@ -96,7 +97,7 @@ export function NotificationBell() {
         <div className="border-b p-4">
           <h4 className="leading-none font-semibold">Notifications</h4>
         </div>
-        <ScrollArea className="h-[300px]">
+        <ScrollArea className="h-75">
           {notifications.length === 0 ? (
             <div className="text-muted-foreground p-4 text-center text-sm">
               No notifications

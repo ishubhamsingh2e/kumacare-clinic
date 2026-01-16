@@ -3,9 +3,9 @@ import { NextResponse } from "next/server";
 import bcrypt from "bcryptjs";
 
 export async function POST(req: Request) {
-  const { name, email, password } = await req.json();
+  const { title, name, email, password } = await req.json();
 
-  if (!name || !email || !password) {
+  if (!title || !name || !email || !password) {
     return new NextResponse("Missing fields", { status: 400 });
   }
 
@@ -23,6 +23,7 @@ export async function POST(req: Request) {
 
   const user = await prisma.user.create({
     data: {
+      title,
       name,
       email,
       password: hashedPassword,

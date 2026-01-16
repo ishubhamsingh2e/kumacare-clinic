@@ -95,6 +95,37 @@ export async function acceptInvitation(invitationId: string) {
   return { success: true };
 }
 
+export async function declineInvitation(invitationId: string) {
+  const session = await auth();
+  if (!session?.user?.id || !session?.user?.email) {
+    throw new Error("Unauthorized");
+  }
+
+  const invitation = await prisma.invitation.findUnique({
+    where: { id: invitationId },
+  });
+
+  if (!invitation || invitation.email !== session.user.email) {
+    throw new Error("Invitation not found");
+  }
+
+  await prisma.invitation.update({
+    where: { id: invitationId },
+    data: { status: "REJECTED" },
+  });
+  
+  // Notify the inviter
+  await createNotification(
+      invitation.inviterId,
+      "Invitation Declined",
+      `${session.user.name || session.user.email} has declined your invitation.`,
+      "INVITE_REJECTED"
+  );
+
+  revalidatePath("/dashboard/notifications");
+  return { success: true };
+}
+
 export async function setDefaultClinic(clinicId: string) {
   const session = await auth();
   if (!session?.user?.id) {
@@ -121,11 +152,20 @@ export async function inviteUserToClinic(email: string, roleId: string) {
     throw new Error("No active clinic");
   }
 
-  const isManager = session.user.role === "CLINIC_MANAGER" || session.user.role === "SUPER_ADMIN";
+  const isManager =
+    session.user.role === "CLINIC_MANAGER" ||
+    session.user.role === "SUPER_ADMIN";
   if (!isManager) {
     throw new Error("Unauthorized: Only clinic managers can invite users");
   }
-  
+
+  const clinic = await prisma.clinic.findUnique({
+    where: { id: session.user.activeClinicId },
+  });
+  if (!clinic) {
+    throw new Error("Clinic not found");
+  }
+
   const invitation = await prisma.invitation.create({
     data: {
       email,
@@ -140,16 +180,17 @@ export async function inviteUserToClinic(email: string, roleId: string) {
   // Check if the user exists to notify them
   const invitedUser = await prisma.user.findUnique({ where: { email } });
   if (invitedUser) {
-      await createNotification(
-          invitedUser.id,
-          "New Invitation",
-          `You have been invited to join a clinic.`,
-          "INVITE_RECEIVED"
-      );
+    await createNotification(
+      invitedUser.id,
+      "New Invitation",
+      `You have been invited to join ${clinic.name}.`,
+      "INVITE_RECEIVED",
+      invitation.id,
+    );
   }
 
   // In a real app, send an email here.
-  
+
   revalidatePath("/dashboard/users");
   return { success: true, invitation };
 }
