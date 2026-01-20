@@ -1,46 +1,18 @@
 "use client";
 
-import { useActionState, useEffect, useState } from "react";
-import { useFormStatus } from "react-dom";
+import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { toast } from "sonner";
-import { Check, X } from "lucide-react";
+import { Check, X, Loader2 } from "lucide-react";
 import { cn } from "@/lib/utils";
 
-const initialState = {
-  message: "",
-  type: "",
-};
-
-function SubmitButton({ disabled }: { disabled: boolean }) {
-  const { pending } = useFormStatus();
-
-  return (
-    <Button type="submit" disabled={pending || disabled}>
-      {pending ? "Updating..." : "Update Password"}
-    </Button>
-  );
-}
-
 export function UserPasswordForm() {
-  const [state, formAction] = useActionState(updatePassword, initialState);
   const [currentPassword, setCurrentPassword] = useState("");
   const [newPassword, setNewPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
-
-  useEffect(() => {
-    if (state?.type === "success") {
-      toast.success(state.message);
-      // Reset form on success
-      setCurrentPassword("");
-      setNewPassword("");
-      setConfirmPassword("");
-    } else if (state?.type === "error") {
-      toast.error(state.message);
-    }
-  }, [state]);
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   const isValidLength = newPassword.length >= 6;
   const isMatching = newPassword === confirmPassword && confirmPassword !== "";
@@ -48,8 +20,45 @@ export function UserPasswordForm() {
 
   const isValid = isValidLength && isMatching && hasCurrent;
 
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+
+    if (!isValid) {
+      return;
+    }
+
+    setIsSubmitting(true);
+
+    try {
+      const response = await fetch("/api/user/password", {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          currentPassword,
+          newPassword,
+        }),
+      });
+
+      const data = await response.json();
+
+      if (response.ok) {
+        toast.success(data.message || "Password updated successfully");
+        // Reset form on success
+        setCurrentPassword("");
+        setNewPassword("");
+        setConfirmPassword("");
+      } else {
+        toast.error(data.error || "Failed to update password");
+      }
+    } catch (error) {
+      toast.error("An error occurred while updating password");
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
   return (
-    <form action={formAction}>
+    <form onSubmit={handleSubmit}>
       <div className="grid gap-4">
         <div className="grid gap-2">
           <Label htmlFor="currentPassword">Current Password</Label>
@@ -59,6 +68,7 @@ export function UserPasswordForm() {
             type="password"
             value={currentPassword}
             onChange={(e) => setCurrentPassword(e.target.value)}
+            disabled={isSubmitting}
             required
           />
         </div>
@@ -70,6 +80,7 @@ export function UserPasswordForm() {
             type="password"
             value={newPassword}
             onChange={(e) => setNewPassword(e.target.value)}
+            disabled={isSubmitting}
             required
             minLength={6}
           />
@@ -77,7 +88,7 @@ export function UserPasswordForm() {
             <span
               className={cn(
                 "flex items-center gap-1",
-                isValidLength ? "text-green-500" : "text-muted-foreground",
+                isValidLength ? "text-green-500" : "text-muted-foreground"
               )}
             >
               {isValidLength ? (
@@ -97,6 +108,7 @@ export function UserPasswordForm() {
             type="password"
             value={confirmPassword}
             onChange={(e) => setConfirmPassword(e.target.value)}
+            disabled={isSubmitting}
             required
             minLength={6}
           />
@@ -115,17 +127,18 @@ export function UserPasswordForm() {
           )}
         </div>
         <div className="flex justify-end">
-          <SubmitButton disabled={!isValid} />
+          <Button type="submit" disabled={!isValid || isSubmitting}>
+            {isSubmitting ? (
+              <>
+                <Loader2 className="h-4 w-4 animate-spin mr-2" />
+                Updating...
+              </>
+            ) : (
+              "Update Password"
+            )}
+          </Button>
         </div>
       </div>
     </form>
   );
-}
-function updatePassword(state: {
-  message: string;
-  type: string;
-}):
-  | { message: string; type: string }
-  | Promise<{ message: string; type: string }> {
-  throw new Error("Function not implemented.");
 }
