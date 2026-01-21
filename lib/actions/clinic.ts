@@ -11,12 +11,24 @@ import { createNotification } from "./notification";
 
 const clinicProfileSchema = z.object({
   id: z.string(),
-  name: z.string().min(1, "Name is required"),
-  email: z.email().optional().or(z.literal("")),
-  phone: z.string().optional(),
-  whatsapp: z.string().optional(),
+  name: z.string().min(1, "Name is required").optional(),
+  email: z.string().email().optional().or(z.literal("")),
   bio: z.string().optional(),
-  googleReviewsUrl: z.string().url().optional().or(z.literal("")),
+  instagram: z.string().url().optional().or(z.literal("")),
+  facebook: z.string().url().optional().or(z.literal("")),
+  twitter: z.string().url().optional().or(z.literal("")),
+  linkedin: z.string().url().optional().or(z.literal("")),
+  showOwnerInfo: z.boolean().optional(),
+  ownerFieldsToShow: z
+    .object({
+      name: z.boolean().optional(),
+      email: z.boolean().optional(),
+      phone: z.boolean().optional(),
+      image: z.boolean().optional(),
+    })
+    .optional(),
+  coverImage: z.string().nullable().optional(),
+  profileImage: z.string().nullable().optional(),
 });
 
 const locationSchema = z.object({
@@ -24,9 +36,12 @@ const locationSchema = z.object({
   address: z.string().min(1, "Address is required"),
   city: z.string().optional(),
   state: z.string().optional(),
+  country: z.string().optional(),
   zip: z.string().optional(),
   phone: z.string().optional(),
   email: z.string().email().optional().or(z.literal("")),
+  whatsapp: z.string().optional(),
+  googleMapsUrl: z.string().url().optional().or(z.literal("")),
 });
 
 export async function acceptInvitation(invitationId: string) {
@@ -124,10 +139,15 @@ export async function updateClinicProfile(payload: unknown) {
 
   const { id, ...data } = validatedFields.data;
 
+  // Filter out undefined values to allow partial updates
+  const updateData = Object.fromEntries(
+    Object.entries(data).filter(([_, value]) => value !== undefined),
+  );
+
   try {
     await prisma.clinic.update({
       where: { id },
-      data,
+      data: updateData,
     });
     revalidatePath("/dashboard/settings");
     return { success: true };
@@ -186,6 +206,18 @@ export async function deleteClinicLocation(id: string) {
   if (!canUpdate) {
     return { error: "Permission denied" };
   }
+
+  const locationCount = await prisma.clinicLocation.count({
+    where: { clinicId: session.user.activeClinicId },
+  });
+
+  if (locationCount <= 1) {
+    return {
+      error:
+        "Cannot delete the last location. A clinic must have at least one location.",
+    };
+  }
+
   await prisma.clinicLocation.delete({
     where: { id, clinicId: session.user.activeClinicId },
   });

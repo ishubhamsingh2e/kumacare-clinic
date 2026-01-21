@@ -25,7 +25,7 @@ export function ConnectedAccounts() {
       id: "google",
       name: "Google",
       icon: GoogleIcon,
-      description: "Connect your Google account to sync your calendar.",
+      description: "Connect to sync your calendar.",
     },
     {
       id: "apple",
@@ -141,7 +141,14 @@ export function ConnectedAccounts() {
               </div>
               <div className="space-y-1">
                 <p className="text-sm leading-none font-medium">
-                  {provider.name}
+                  {provider.name}{" "}
+                  <span
+                    className={`text-xs sm:inline ${
+                      connected ? "text-green-600" : "text-muted-foreground"
+                    }`}
+                  >
+                    ({connected ? "Connected" : "Not connected"})
+                  </span>
                 </p>
                 <p className="text-muted-foreground text-xs">
                   {provider.description}
@@ -149,13 +156,6 @@ export function ConnectedAccounts() {
               </div>
             </div>
             <div className="flex items-center gap-4">
-              <span
-                className={`text-xs sm:inline ${
-                  connected ? "text-green-600" : "text-muted-foreground"
-                }`}
-              >
-                {connected ? "Connected" : "Not connected"}
-              </span>
               {connected ? (
                 <Button
                   variant="outline"

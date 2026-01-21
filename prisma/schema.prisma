@@ -62,6 +62,12 @@ model Clinic {
   profileImage       String?
   slug               String?              @unique
   whatsapp           String?
+  instagram          String?
+  facebook           String?
+  twitter            String?
+  linkedin           String?
+  showOwnerInfo      Boolean              @default(true)
+  ownerFieldsToShow  Json?
   ApiKey             ApiKey[]
   Booking            Booking[]
   User               User?                @relation(fields: [ownerId], references: [id])
@@ -79,6 +85,7 @@ model ClinicLocation {
   address       String
   city          String?
   state         String?
+  country       String?
   zip           String?
   phone         String?
   email         String?

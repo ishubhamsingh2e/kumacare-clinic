@@ -51,9 +51,12 @@ const locationSchema = z.object({
   address: z.string().min(1, "Address is required"),
   city: z.string().optional(),
   state: z.string().optional(),
+  country: z.string().optional(),
   zip: z.string().optional(),
   phone: z.string().optional(),
   email: z.string().email().optional().or(z.literal("")),
+  whatsapp: z.string().optional(),
+  googleMapsUrl: z.string().url().optional().or(z.literal("")),
 });
 
 type FormValues = z.infer<typeof locationSchema>;
@@ -104,8 +107,10 @@ export function LocationManagement({ locations }: LocationManagementProps) {
   return (
     <Card>
       <CardHeader>
-        <CardTitle>Location Management</CardTitle>
-        <CardDescription>Manage your clinic's locations.</CardDescription>
+        <CardTitle>Clinic Locations</CardTitle>
+        <CardDescription>
+          Manage your clinic's physical locations. At least one location is required.
+        </CardDescription>
       </CardHeader>
       <CardContent>
         <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
@@ -145,31 +150,44 @@ export function LocationManagement({ locations }: LocationManagementProps) {
                     </FieldError>
                   )}
                 </Field>
-                <Field>
-                  <FieldLabel>City</FieldLabel>
-                  <Input {...form.register("city")} />
-                  {form.formState.errors.city && (
-                    <FieldError>
-                      {form.formState.errors.city.message}
-                    </FieldError>
-                  )}
-                </Field>
-                <Field>
-                  <FieldLabel>State</FieldLabel>
-                  <Input {...form.register("state")} />
-                  {form.formState.errors.state && (
-                    <FieldError>
-                      {form.formState.errors.state.message}
-                    </FieldError>
-                  )}
-                </Field>
-                <Field>
-                  <FieldLabel>Zip/Postal Code</FieldLabel>
-                  <Input {...form.register("zip")} />
-                  {form.formState.errors.zip && (
-                    <FieldError>{form.formState.errors.zip.message}</FieldError>
-                  )}
-                </Field>
+                <div className="grid grid-cols-2 gap-4">
+                  <Field>
+                    <FieldLabel>City</FieldLabel>
+                    <Input {...form.register("city")} />
+                    {form.formState.errors.city && (
+                      <FieldError>
+                        {form.formState.errors.city.message}
+                      </FieldError>
+                    )}
+                  </Field>
+                  <Field>
+                    <FieldLabel>State</FieldLabel>
+                    <Input {...form.register("state")} />
+                    {form.formState.errors.state && (
+                      <FieldError>
+                        {form.formState.errors.state.message}
+                      </FieldError>
+                    )}
+                  </Field>
+                </div>
+                <div className="grid grid-cols-2 gap-4">
+                  <Field>
+                    <FieldLabel>Country</FieldLabel>
+                    <Input {...form.register("country")} />
+                    {form.formState.errors.country && (
+                      <FieldError>
+                        {form.formState.errors.country.message}
+                      </FieldError>
+                    )}
+                  </Field>
+                  <Field>
+                    <FieldLabel>Zip/Postal Code</FieldLabel>
+                    <Input {...form.register("zip")} />
+                    {form.formState.errors.zip && (
+                      <FieldError>{form.formState.errors.zip.message}</FieldError>
+                    )}
+                  </Field>
+                </div>
                 <Field>
                   <FieldLabel>Phone</FieldLabel>
                   <Input {...form.register("phone")} />
@@ -180,11 +198,33 @@ export function LocationManagement({ locations }: LocationManagementProps) {
                   )}
                 </Field>
                 <Field>
+                  <FieldLabel>WhatsApp</FieldLabel>
+                  <Input {...form.register("whatsapp")} placeholder="+1234567890" />
+                  {form.formState.errors.whatsapp && (
+                    <FieldError>
+                      {form.formState.errors.whatsapp.message}
+                    </FieldError>
+                  )}
+                </Field>
+                <Field>
                   <FieldLabel>Email</FieldLabel>
                   <Input type="email" {...form.register("email")} />
                   {form.formState.errors.email && (
                     <FieldError>
                       {form.formState.errors.email.message}
+                    </FieldError>
+                  )}
+                </Field>
+                <Field>
+                  <FieldLabel>Google Maps URL</FieldLabel>
+                  <Input 
+                    type="url" 
+                    {...form.register("googleMapsUrl")} 
+                    placeholder="https://maps.google.com/..." 
+                  />
+                  {form.formState.errors.googleMapsUrl && (
+                    <FieldError>
+                      {form.formState.errors.googleMapsUrl.message}
                     </FieldError>
                   )}
                 </Field>
@@ -199,16 +239,31 @@ export function LocationManagement({ locations }: LocationManagementProps) {
         </Dialog>
 
         <div className="mt-4 space-y-2">
+          {locations.length === 0 && (
+            <div className="rounded-lg border border-dashed p-6 text-center text-sm text-muted-foreground">
+              No locations added yet. Add at least one location to save your clinic profile.
+            </div>
+          )}
           {locations.map((location) => (
             <div
               key={location.id}
               className="flex items-center justify-between rounded-md border p-3"
             >
-              <div>
+              <div className="flex-1">
                 <p className="font-semibold">{location.name}</p>
                 <p className="text-sm text-muted-foreground">
                   {location.address}
+                  {location.city && `, ${location.city}`}
+                  {location.state && `, ${location.state}`}
+                  {location.country && `, ${location.country}`}
                 </p>
+                {(location.phone || location.whatsapp || location.email) && (
+                  <p className="text-xs text-muted-foreground mt-1">
+                    {location.phone && `Phone: ${location.phone}`}
+                    {location.whatsapp && ` | WhatsApp: ${location.whatsapp}`}
+                    {location.email && ` | ${location.email}`}
+                  </p>
+                )}
               </div>
               <div className="flex gap-2">
                 <Button
@@ -221,9 +276,12 @@ export function LocationManagement({ locations }: LocationManagementProps) {
                       address: location.address,
                       city: location.city ?? undefined,
                       state: location.state ?? undefined,
+                      country: location.country ?? undefined,
                       zip: location.zip ?? undefined,
                       phone: location.phone ?? undefined,
                       email: location.email ?? undefined,
+                      whatsapp: location.whatsapp ?? undefined,
+                      googleMapsUrl: location.googleMapsUrl ?? undefined,
                     });
                     setIsDialogOpen(true);
                   }}
@@ -232,7 +290,12 @@ export function LocationManagement({ locations }: LocationManagementProps) {
                 </Button>
                 <AlertDialog>
                   <AlertDialogTrigger asChild>
-                    <Button variant="destructive" size="icon">
+                    <Button 
+                      variant="destructive" 
+                      size="icon"
+                      disabled={locations.length === 1}
+                      title={locations.length === 1 ? "Cannot delete the last location" : "Delete location"}
+                    >
                       <Trash className="h-4 w-4" />
                     </Button>
                   </AlertDialogTrigger>
