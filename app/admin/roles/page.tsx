@@ -13,7 +13,7 @@ async function getAllRoles() {
       },
     },
     orderBy: {
-      name: "asc",
+      priority: "desc",
     },
   });
 }
@@ -41,7 +41,10 @@ export default async function AdminRolesPage() {
   }));
 
   return (
-    <DashboardView title="Role Management" subtitle="Manage roles and permissions">
+    <DashboardView
+      title="Role Management"
+      subtitle="Manage roles and permissions"
+    >
       <RolesPageClient
         initialRoles={transformedRoles}
         allPermissions={permissions}

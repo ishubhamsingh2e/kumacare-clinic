@@ -214,6 +214,7 @@ model Permission {
 model Role {
   id          String         @id @default(cuid())
   name        String         @unique
+  priority    Int            @default(0)
   members     ClinicMember[]
   invitations Invitation[]
   permissions Permission[]   @relation("PermissionToRole")

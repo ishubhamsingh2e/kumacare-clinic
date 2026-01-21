@@ -36,7 +36,14 @@ import {
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
 import { RoleSheet } from "@/components/admin/role-sheet";
-import { MoreVertical, Pencil, Trash, Plus } from "lucide-react";
+import {
+  MoreVertical,
+  Pencil,
+  Trash,
+  Plus,
+  ChevronUp,
+  ChevronDown,
+} from "lucide-react";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
 
@@ -49,6 +56,7 @@ interface Permission {
 interface Role {
   id: string;
   name: string;
+  priority: number;
   permissions: Permission[];
   _count: {
     users: number;
@@ -113,7 +121,7 @@ export default function RolesPageClient({
       toast.success(
         roleToDelete._count.users > 0
           ? `Role deleted and ${roleToDelete._count.users} user(s) transferred`
-          : "Role deleted successfully"
+          : "Role deleted successfully",
       );
       setDeleteDialogOpen(false);
       router.refresh();
@@ -128,8 +136,28 @@ export default function RolesPageClient({
     router.refresh();
   };
 
+  const handleReorder = async (roleId: string, direction: "up" | "down") => {
+    try {
+      const response = await fetch("/api/admin/roles/reorder", {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ roleId, direction }),
+      });
+
+      if (!response.ok) {
+        const error = await response.json();
+        throw new Error(error.error || "Failed to reorder role");
+      }
+
+      toast.success("Role order updated");
+      router.refresh();
+    } catch (error) {
+      toast.error(error instanceof Error ? error.message : "An error occurred");
+    }
+  };
+
   const availableTransferRoles = initialRoles.filter(
-    (r) => r.id !== roleToDelete?.id
+    (r) => r.id !== roleToDelete?.id,
   );
 
   return (
@@ -139,6 +167,9 @@ export default function RolesPageClient({
           <p className="text-sm text-muted-foreground">
             Total: {initialRoles.length} roles, {allPermissions.length}{" "}
             permissions
+          </p>
+          <p className="text-xs text-muted-foreground mt-1">
+            Roles are ordered by priority. Higher roles can manage lower roles.
           </p>
         </div>
         <Button onClick={() => handleOpenSheet("create")}>
@@ -151,6 +182,7 @@ export default function RolesPageClient({
         <Table>
           <TableHeader>
             <TableRow>
+              <TableHead className="w-[100px]">Priority</TableHead>
               <TableHead>Role Name</TableHead>
               <TableHead>Users</TableHead>
               <TableHead>Permissions</TableHead>
@@ -161,15 +193,37 @@ export default function RolesPageClient({
             {initialRoles.length === 0 ? (
               <TableRow>
                 <TableCell
-                  colSpan={4}
+                  colSpan={5}
                   className="text-center text-muted-foreground"
                 >
                   No roles found
                 </TableCell>
               </TableRow>
             ) : (
-              initialRoles.map((role) => (
+              initialRoles.map((role, index) => (
                 <TableRow key={role.id}>
+                  <TableCell>
+                    <div className="flex items-center gap-1">
+                      <Button
+                        variant="outline"
+                        size="icon-sm"
+                        onClick={() => handleReorder(role.id, "up")}
+                        disabled={index === 0}
+                        title="Move up (higher priority)"
+                      >
+                        <ChevronUp className="h-4 w-4" />
+                      </Button>
+                      <Button
+                        variant="outline"
+                        size="icon-sm"
+                        onClick={() => handleReorder(role.id, "down")}
+                        disabled={index === initialRoles.length - 1}
+                        title="Move down (lower priority)"
+                      >
+                        <ChevronDown className="h-4 w-4" />
+                      </Button>
+                    </div>
+                  </TableCell>
                   <TableCell className="font-medium">{role.name}</TableCell>
                   <TableCell>
                     <Badge variant="secondary">{role._count.users}</Badge>
