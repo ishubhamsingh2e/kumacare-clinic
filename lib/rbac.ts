@@ -1,6 +1,7 @@
 import { PERMISSIONS, Permission } from "@/lib/permissions";
 import { getServerSession, type AuthOptions } from "next-auth";
 import { authOptions } from "./auth";
+import { prisma } from "./db";
 
 export const ROLES = {
   ADMIN: [
@@ -53,9 +54,47 @@ export async function hasPermission(
   permission: Permission | Permission[],
 ): Promise<boolean> {
   const session = await getServerSession(authOptions as AuthOptions);
-  const userPermissions = session?.user?.permissions ?? [];
-  const requiredPermissions = Array.isArray(permission)
-    ? permission
-    : [permission];
-  return requiredPermissions.every((p) => userPermissions.includes(p));
+  
+  if (!session?.user?.id) {
+    return false;
+  }
+
+  const userId = session.user.id;
+  const activeClinicId = session.user.activeClinicId;
+
+  try {
+    // Query the database for user's clinic membership and role
+    const membership = await prisma.clinicMember.findUnique({
+      where: {
+        userId_clinicId: {
+          userId: userId,
+          clinicId: activeClinicId || "",
+        },
+      },
+      include: {
+        Role: {
+          include: {
+            permissions: true,
+          },
+        },
+      },
+    });
+
+    if (!membership || !membership.Role) {
+      return false;
+    }
+
+    // Get permissions from the role
+    const userPermissions = membership.Role.permissions.map((p) => p.name);
+
+    // Check if user has required permissions
+    const requiredPermissions = Array.isArray(permission)
+      ? permission
+      : [permission];
+
+    return requiredPermissions.every((p) => userPermissions.includes(p));
+  } catch (error) {
+    console.error("Permission check error:", error);
+    return false;
+  }
 }
