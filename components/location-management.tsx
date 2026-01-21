@@ -6,12 +6,12 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { Button } from "@/components/ui/button";
 import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-  DialogTrigger,
-} from "@/components/ui/dialog";
+  Sheet,
+  SheetContent,
+  SheetHeader,
+  SheetTitle,
+  SheetTrigger,
+} from "@/components/ui/sheet";
 import {
   Field,
   FieldLabel,
@@ -66,7 +66,7 @@ interface LocationManagementProps {
 }
 
 export function LocationManagement({ locations }: LocationManagementProps) {
-  const [isDialogOpen, setIsDialogOpen] = useState(false);
+  const [isSheetOpen, setIsSheetOpen] = useState(false);
   const [editingLocation, setEditingLocation] = useState<ClinicLocation | null>(
     null,
   );
@@ -89,7 +89,9 @@ export function LocationManagement({ locations }: LocationManagementProps) {
       toast.success(
         `Location ${editingLocation ? "updated" : "added"} successfully.`,
       );
-      setIsDialogOpen(false);
+      setIsSheetOpen(false);
+      reset({});
+      setEditingLocation(null);
     } else {
       toast.error(result.error || "An error occurred.");
     }
@@ -109,12 +111,13 @@ export function LocationManagement({ locations }: LocationManagementProps) {
       <CardHeader>
         <CardTitle>Clinic Locations</CardTitle>
         <CardDescription>
-          Manage your clinic's physical locations. At least one location is required.
+          Manage your clinic's physical locations. At least one location is
+          required.
         </CardDescription>
       </CardHeader>
       <CardContent>
-        <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
-          <DialogTrigger asChild>
+        <Sheet open={isSheetOpen} onOpenChange={setIsSheetOpen}>
+          <SheetTrigger asChild>
             <Button
               onClick={() => {
                 setEditingLocation(null);
@@ -123,111 +126,121 @@ export function LocationManagement({ locations }: LocationManagementProps) {
             >
               <Plus className="mr-2 h-4 w-4" /> Add Location
             </Button>
-          </DialogTrigger>
-          <DialogContent>
-            <DialogHeader>
-              <DialogTitle>
+          </SheetTrigger>
+          <SheetContent className="overflow-y-auto sm:max-w-lg h-full">
+            <SheetHeader>
+              <SheetTitle>
                 {editingLocation ? "Edit Location" : "Add Location"}
-              </DialogTitle>
-            </DialogHeader>
-            <form onSubmit={form.handleSubmit(onSubmit)}>
-              <FieldGroup>
-                <Field>
-                  <FieldLabel>Location Name</FieldLabel>
-                  <Input {...form.register("name")} />
-                  {form.formState.errors.name && (
-                    <FieldError>
-                      {form.formState.errors.name.message}
-                    </FieldError>
-                  )}
-                </Field>
-                <Field>
-                  <FieldLabel>Address</FieldLabel>
-                  <Input {...form.register("address")} />
-                  {form.formState.errors.address && (
-                    <FieldError>
-                      {form.formState.errors.address.message}
-                    </FieldError>
-                  )}
-                </Field>
-                <div className="grid grid-cols-2 gap-4">
+              </SheetTitle>
+            </SheetHeader>
+            <form
+              onSubmit={form.handleSubmit(onSubmit)}
+              className="mt-6 p-4 h-full"
+            >
+              <FieldGroup className="flex flex-col gap-4 justify-between h-full">
+                <div className="space-y-4">
                   <Field>
-                    <FieldLabel>City</FieldLabel>
-                    <Input {...form.register("city")} />
-                    {form.formState.errors.city && (
+                    <FieldLabel>Location Name</FieldLabel>
+                    <Input {...form.register("name")} />
+                    {form.formState.errors.name && (
                       <FieldError>
-                        {form.formState.errors.city.message}
+                        {form.formState.errors.name.message}
                       </FieldError>
                     )}
                   </Field>
                   <Field>
-                    <FieldLabel>State</FieldLabel>
-                    <Input {...form.register("state")} />
-                    {form.formState.errors.state && (
+                    <FieldLabel>Address</FieldLabel>
+                    <Input {...form.register("address")} />
+                    {form.formState.errors.address && (
                       <FieldError>
-                        {form.formState.errors.state.message}
+                        {form.formState.errors.address.message}
+                      </FieldError>
+                    )}
+                  </Field>
+                  <div className="grid grid-cols-2 gap-4">
+                    <Field>
+                      <FieldLabel>City</FieldLabel>
+                      <Input {...form.register("city")} />
+                      {form.formState.errors.city && (
+                        <FieldError>
+                          {form.formState.errors.city.message}
+                        </FieldError>
+                      )}
+                    </Field>
+                    <Field>
+                      <FieldLabel>State</FieldLabel>
+                      <Input {...form.register("state")} />
+                      {form.formState.errors.state && (
+                        <FieldError>
+                          {form.formState.errors.state.message}
+                        </FieldError>
+                      )}
+                    </Field>
+                  </div>
+                  <div className="grid grid-cols-2 gap-4">
+                    <Field>
+                      <FieldLabel>Country</FieldLabel>
+                      <Input {...form.register("country")} />
+                      {form.formState.errors.country && (
+                        <FieldError>
+                          {form.formState.errors.country.message}
+                        </FieldError>
+                      )}
+                    </Field>
+                    <Field>
+                      <FieldLabel>Zip/Postal Code</FieldLabel>
+                      <Input {...form.register("zip")} />
+                      {form.formState.errors.zip && (
+                        <FieldError>
+                          {form.formState.errors.zip.message}
+                        </FieldError>
+                      )}
+                    </Field>
+                  </div>
+                  <Field>
+                    <FieldLabel>Phone</FieldLabel>
+                    <Input {...form.register("phone")} />
+                    {form.formState.errors.phone && (
+                      <FieldError>
+                        {form.formState.errors.phone.message}
+                      </FieldError>
+                    )}
+                  </Field>
+                  <Field>
+                    <FieldLabel>WhatsApp</FieldLabel>
+                    <Input
+                      {...form.register("whatsapp")}
+                      placeholder="+1234567890"
+                    />
+                    {form.formState.errors.whatsapp && (
+                      <FieldError>
+                        {form.formState.errors.whatsapp.message}
+                      </FieldError>
+                    )}
+                  </Field>
+                  <Field>
+                    <FieldLabel>Email</FieldLabel>
+                    <Input type="email" {...form.register("email")} />
+                    {form.formState.errors.email && (
+                      <FieldError>
+                        {form.formState.errors.email.message}
+                      </FieldError>
+                    )}
+                  </Field>
+                  <Field>
+                    <FieldLabel>Google Maps URL</FieldLabel>
+                    <Input
+                      type="url"
+                      {...form.register("googleMapsUrl")}
+                      placeholder="https://maps.google.com/..."
+                    />
+                    {form.formState.errors.googleMapsUrl && (
+                      <FieldError>
+                        {form.formState.errors.googleMapsUrl.message}
                       </FieldError>
                     )}
                   </Field>
                 </div>
-                <div className="grid grid-cols-2 gap-4">
-                  <Field>
-                    <FieldLabel>Country</FieldLabel>
-                    <Input {...form.register("country")} />
-                    {form.formState.errors.country && (
-                      <FieldError>
-                        {form.formState.errors.country.message}
-                      </FieldError>
-                    )}
-                  </Field>
-                  <Field>
-                    <FieldLabel>Zip/Postal Code</FieldLabel>
-                    <Input {...form.register("zip")} />
-                    {form.formState.errors.zip && (
-                      <FieldError>{form.formState.errors.zip.message}</FieldError>
-                    )}
-                  </Field>
-                </div>
-                <Field>
-                  <FieldLabel>Phone</FieldLabel>
-                  <Input {...form.register("phone")} />
-                  {form.formState.errors.phone && (
-                    <FieldError>
-                      {form.formState.errors.phone.message}
-                    </FieldError>
-                  )}
-                </Field>
-                <Field>
-                  <FieldLabel>WhatsApp</FieldLabel>
-                  <Input {...form.register("whatsapp")} placeholder="+1234567890" />
-                  {form.formState.errors.whatsapp && (
-                    <FieldError>
-                      {form.formState.errors.whatsapp.message}
-                    </FieldError>
-                  )}
-                </Field>
-                <Field>
-                  <FieldLabel>Email</FieldLabel>
-                  <Input type="email" {...form.register("email")} />
-                  {form.formState.errors.email && (
-                    <FieldError>
-                      {form.formState.errors.email.message}
-                    </FieldError>
-                  )}
-                </Field>
-                <Field>
-                  <FieldLabel>Google Maps URL</FieldLabel>
-                  <Input 
-                    type="url" 
-                    {...form.register("googleMapsUrl")} 
-                    placeholder="https://maps.google.com/..." 
-                  />
-                  {form.formState.errors.googleMapsUrl && (
-                    <FieldError>
-                      {form.formState.errors.googleMapsUrl.message}
-                    </FieldError>
-                  )}
-                </Field>
                 <Field>
                   <Button type="submit" disabled={isSubmitting}>
                     {isSubmitting ? "Saving..." : "Save Location"}
@@ -235,13 +248,14 @@ export function LocationManagement({ locations }: LocationManagementProps) {
                 </Field>
               </FieldGroup>
             </form>
-          </DialogContent>
-        </Dialog>
+          </SheetContent>
+        </Sheet>
 
         <div className="mt-4 space-y-2">
           {locations.length === 0 && (
             <div className="rounded-lg border border-dashed p-6 text-center text-sm text-muted-foreground">
-              No locations added yet. Add at least one location to save your clinic profile.
+              No locations added yet. Add at least one location to save your
+              clinic profile.
             </div>
           )}
           {locations.map((location) => (
@@ -283,18 +297,22 @@ export function LocationManagement({ locations }: LocationManagementProps) {
                       whatsapp: location.whatsapp ?? undefined,
                       googleMapsUrl: location.googleMapsUrl ?? undefined,
                     });
-                    setIsDialogOpen(true);
+                    setIsSheetOpen(true);
                   }}
                 >
                   <Edit className="h-4 w-4" />
                 </Button>
                 <AlertDialog>
                   <AlertDialogTrigger asChild>
-                    <Button 
-                      variant="destructive" 
+                    <Button
+                      variant="destructive"
                       size="icon"
                       disabled={locations.length === 1}
-                      title={locations.length === 1 ? "Cannot delete the last location" : "Delete location"}
+                      title={
+                        locations.length === 1
+                          ? "Cannot delete the last location"
+                          : "Delete location"
+                      }
                     >
                       <Trash className="h-4 w-4" />
                     </Button>
