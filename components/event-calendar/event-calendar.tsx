@@ -292,7 +292,7 @@ export function EventCalendar({
             </Button>
             <div className="flex items-center sm:gap-2">
               <Button
-                variant="ghost"
+                variant="outline"
                 size="icon"
                 onClick={handlePrevious}
                 aria-label="Previous"
@@ -300,7 +300,7 @@ export function EventCalendar({
                 <ChevronLeftIcon size={16} aria-hidden="true" />
               </Button>
               <Button
-                variant="ghost"
+                variant="outline"
                 size="icon"
                 onClick={handleNext}
                 aria-label="Next"
