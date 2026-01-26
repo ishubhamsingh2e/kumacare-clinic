@@ -4,7 +4,13 @@ import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Label } from "@/components/ui/label";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
 import { getWeeklyOffDays, updateWeeklyOffDays } from "@/lib/actions/off-days";
 import { toast } from "sonner";
 import { Loader2 } from "lucide-react";
@@ -24,7 +30,10 @@ const DAYS_OF_WEEK = [
   { value: 6, label: "Saturday", short: "Sat" },
 ];
 
-export function WeeklyOffDaysSelector({ clinicId, onUpdate }: WeeklyOffDaysSelectorProps) {
+export function WeeklyOffDaysSelector({
+  clinicId,
+  onUpdate,
+}: WeeklyOffDaysSelectorProps) {
   const [selectedDays, setSelectedDays] = useState<number[]>([]);
   const [initialDays, setInitialDays] = useState<number[]>([]);
   const [loading, setLoading] = useState(true);
@@ -37,7 +46,7 @@ export function WeeklyOffDaysSelector({ clinicId, onUpdate }: WeeklyOffDaysSelec
   async function loadOffDays() {
     setLoading(true);
     const result = await getWeeklyOffDays(clinicId);
-    
+
     if (result.error) {
       toast.error(result.error);
       setLoading(false);
@@ -53,7 +62,7 @@ export function WeeklyOffDaysSelector({ clinicId, onUpdate }: WeeklyOffDaysSelec
     setSelectedDays((prev) =>
       prev.includes(dayValue)
         ? prev.filter((d) => d !== dayValue)
-        : [...prev, dayValue].sort()
+        : [...prev, dayValue].sort(),
     );
   };
 
@@ -75,7 +84,7 @@ export function WeeklyOffDaysSelector({ clinicId, onUpdate }: WeeklyOffDaysSelec
     toast.success("Weekly off days updated");
     setInitialDays([...selectedDays]);
     setSaving(false);
-    
+
     // Call the onUpdate callback to refresh availability tabs
     if (onUpdate) {
       onUpdate();
@@ -91,7 +100,9 @@ export function WeeklyOffDaysSelector({ clinicId, onUpdate }: WeeklyOffDaysSelec
       <Card>
         <CardHeader>
           <CardTitle>Weekly Off Days</CardTitle>
-          <CardDescription>Select days of the week when you are not available</CardDescription>
+          <CardDescription>
+            Select days of the week when you are not available
+          </CardDescription>
         </CardHeader>
         <CardContent className="flex justify-center py-8">
           <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
