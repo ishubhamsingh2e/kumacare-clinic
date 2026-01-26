@@ -17,7 +17,7 @@ import { authOptions } from "@/lib/auth";
 
 export default async function AccountSettingsPage() {
   const session = await getServerSession(authOptions);
-  
+
   if (!session?.user) {
     redirect("/login");
   }
@@ -66,7 +66,7 @@ export default async function AccountSettingsPage() {
             <UserProfileForm user={user} />
           </CardContent>
         </Card>
-        
+
         {user.title === "Dr." && (
           <Card>
             <CardHeader>

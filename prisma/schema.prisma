@@ -94,6 +94,7 @@ model Clinic {
   DoctorWeeklyOffDay   DoctorWeeklyOffDay[]
   DoctorSpecificOffDay DoctorSpecificOffDay[]
   Invitation           Invitation[]
+  PrintSettings        PrintSettings[]
 }
 
 
@@ -291,6 +292,7 @@ model User {
   Session              Session[]
   Medicine             Medicine[]
   MedicineGroup        MedicineGroup[]
+  PrintSettings        PrintSettings[]
 
   @@index([defaultClinicId])
 }
@@ -420,4 +422,54 @@ model MedicineGroupItem {
   @@unique([groupId, medicineId])
   @@index([groupId])
   @@index([medicineId])
+}
+
+model PrintSettings {
+  id                    String   @id @default(cuid())
+  doctorId              String
+  clinicId              String
+  
+  // Margins (in mm)
+  marginTop             Float    @default(20)
+  marginBottom          Float    @default(20)
+  marginLeft            Float    @default(15)
+  marginRight           Float    @default(15)
+  
+  // Template
+  templateType          String   @default("classic")
+  
+  // Header/Footer
+  useCustomHeader       Boolean  @default(false)
+  useCustomFooter       Boolean  @default(false)
+  headerImageUrl        String?
+  footerImageUrl        String?
+  headerFirstPageOnly   Boolean  @default(false)
+  
+  // Watermark
+  enableWatermark       Boolean  @default(false)
+  watermarkImageUrl     String?
+  watermarkText         String?
+  watermarkOpacity      Float    @default(0.1)
+  
+  // Signature
+  doctorSignatureUrl    String?
+  
+  // Patient Info (JSON array of field names)
+  patientInfoFields     Json     @default("[]")
+  
+  // Doctor Info (JSON array of field names)
+  doctorInfoFields      Json     @default("[]")
+  
+  // Rx Settings
+  useGenericName        Boolean  @default(false)
+  
+  createdAt             DateTime @default(now())
+  updatedAt             DateTime @updatedAt
+  
+  doctor                User     @relation(fields: [doctorId], references: [id], onDelete: Cascade)
+  clinic                Clinic   @relation(fields: [clinicId], references: [id], onDelete: Cascade)
+  
+  @@unique([doctorId, clinicId])
+  @@index([doctorId])
+  @@index([clinicId])
 }

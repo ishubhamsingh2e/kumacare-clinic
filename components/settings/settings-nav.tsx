@@ -33,6 +33,12 @@ export function SettingsNav({
       show: isDoctor,
     },
     {
+      title: "Print Settings",
+      href: "/dashboard/settings/print-settings",
+      value: "print-settings",
+      show: isDoctor,
+    },
+    {
       title: "Clinic Management",
       href: "/dashboard/settings/clinic",
       value: "clinic",
@@ -55,7 +61,8 @@ export function SettingsNav({
   // Determine current value based on pathname
   const getCurrentValue = () => {
     if (pathname === "/dashboard/settings") return "account";
-    if (pathname === "/dashboard/settings/medicines") return "medicines";
+    if (pathname?.startsWith("/dashboard/settings/medicines")) return "medicines";
+    if (pathname === "/dashboard/settings/print-settings") return "print-settings";
     if (pathname === "/dashboard/settings/clinic") return "clinic";
     if (pathname === "/dashboard/settings/users") return "users";
     if (pathname === "/dashboard/settings/integrations") return "integrations";
