@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
 import { prisma } from "@/lib/db";
+import { redis, CacheKeys, CacheTTL } from "@/lib/redis";
 
 // GET - List medicines with pagination and search
 export async function GET(req: NextRequest) {
@@ -16,6 +17,14 @@ export async function GET(req: NextRequest) {
     const page = parseInt(searchParams.get("page") || "1");
     const limit = parseInt(searchParams.get("limit") || "10");
     const search = searchParams.get("search") || "";
+    
+    const cacheKey = CacheKeys.medicines(session.user.id, page, limit, search);
+    
+    // Try to get from cache
+    const cached = await redis.get(cacheKey);
+    if (cached) {
+      return NextResponse.json(cached);
+    }
     
     const skip = (page - 1) * limit;
 
@@ -40,7 +49,7 @@ export async function GET(req: NextRequest) {
       prisma.medicine.count({ where }),
     ]);
 
-    return NextResponse.json({
+    const response = {
       medicines,
       pagination: {
         total,
@@ -48,7 +57,12 @@ export async function GET(req: NextRequest) {
         limit,
         totalPages: Math.ceil(total / limit),
       },
-    });
+    };
+    
+    // Cache for 5 minutes
+    await redis.set(cacheKey, response, CacheTTL.MEDIUM);
+
+    return NextResponse.json(response);
   } catch (error: any) {
     console.error("Error fetching medicines:", error);
     return NextResponse.json(
@@ -110,6 +124,9 @@ export async function POST(req: NextRequest) {
       },
     });
 
+    // Invalidate medicines cache for this doctor
+    await redis.delPattern(`medicines:${session.user.id}:*`);
+
     return NextResponse.json(medicine);
   } catch (error: any) {
     console.error("Error creating medicine:", error);
@@ -157,6 +174,9 @@ export async function PUT(req: NextRequest) {
       data,
     });
 
+    // Invalidate medicines cache for this doctor
+    await redis.delPattern(`medicines:${session.user.id}:*`);
+
     return NextResponse.json(medicine);
   } catch (error: any) {
     console.error("Error updating medicine:", error);
@@ -202,6 +222,9 @@ export async function DELETE(req: NextRequest) {
     await prisma.medicine.delete({
       where: { id },
     });
+
+    // Invalidate medicines cache for this doctor
+    await redis.delPattern(`medicines:${session.user.id}:*`);
 
     return NextResponse.json({ success: true });
   } catch (error: any) {

@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
 import { getDoctorAvailability } from "@/lib/actions/bookings";
+import { redis, CacheKeys, CacheTTL } from "@/lib/redis";
 
 export async function GET(req: NextRequest) {
   try {
@@ -20,6 +21,14 @@ export async function GET(req: NextRequest) {
         { error: "Missing required parameters" },
         { status: 400 },
       );
+    }
+
+    const cacheKey = CacheKeys.availableSlots(doctorId, dateStr);
+    
+    // Try to get from cache
+    const cached = await redis.get(cacheKey);
+    if (cached) {
+      return NextResponse.json(cached);
     }
 
     const date = new Date(dateStr);
@@ -44,7 +53,12 @@ export async function GET(req: NextRequest) {
       return `${startTime} - ${endTime}`;
     });
 
-    return NextResponse.json({ slots: formattedSlots });
+    const response = { slots: formattedSlots };
+    
+    // Cache for 1 minute (short TTL as slots can change frequently)
+    await redis.set(cacheKey, response, CacheTTL.SHORT);
+
+    return NextResponse.json(response);
   } catch (error) {
     console.error("Error fetching available slots:", error);
     return NextResponse.json(

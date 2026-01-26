@@ -10,6 +10,7 @@ import {
   logWhatsAppMessage,
   logSMSMessage,
 } from "@/lib/email";
+import { redis } from "@/lib/redis";
 
 export async function POST(req: NextRequest) {
   try {
@@ -41,6 +42,11 @@ export async function POST(req: NextRequest) {
     if (!result.success) {
       return NextResponse.json({ error: result.error }, { status: 400 });
     }
+
+    // Invalidate available slots cache for this doctor
+    const dateStr = format(new Date(start), "yyyy-MM-dd");
+    await redis.delPattern(`slots:${doctorId}:*`);
+    await redis.delPattern(`appointments:${clinicId}:*`);
 
     // Fetch related data for notifications
     const [patient, doctor, clinic] = await Promise.all([
