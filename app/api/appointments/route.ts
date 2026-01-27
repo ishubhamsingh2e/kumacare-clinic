@@ -20,7 +20,7 @@ export async function POST(req: NextRequest) {
     }
 
     const body = await req.json();
-    const { patientId, clinicId, doctorId, start, end, reason, notes } = body;
+    const { patientId, clinicId, doctorId, visitTypeId, start, end, reason, notes } = body;
 
     if (!patientId || !clinicId || !doctorId || !start || !end) {
       return NextResponse.json(
@@ -33,10 +33,13 @@ export async function POST(req: NextRequest) {
       patientId,
       clinicId,
       doctorId,
+      visitTypeId: visitTypeId || null,
       start: new Date(start),
       end: new Date(end),
       reason,
       notes,
+      createdById: session.user.id,
+      isOnlineBooking: false,
     });
 
     if (!result.success) {

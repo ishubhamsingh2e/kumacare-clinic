@@ -12,10 +12,13 @@ const CreateBookingSchema = z.object({
   patientId: z.string().min(1, "Patient is required"),
   clinicId: z.string().min(1, "Clinic is required"),
   doctorId: z.string().min(1, "Doctor is required"),
+  visitTypeId: z.string().optional().nullable(),
   start: z.coerce.date(),
   end: z.coerce.date(),
   reason: z.string().optional(),
   notes: z.string().optional(),
+  createdById: z.string().optional(),
+  isOnlineBooking: z.boolean().optional(),
 });
 
 export type CreateBookingFormData = z.infer<typeof CreateBookingSchema>;
@@ -80,12 +83,15 @@ export async function createBooking(data: CreateBookingFormData) {
         patientId: validated.patientId,
         clinicId: validated.clinicId,
         doctorId: validated.doctorId,
+        visitTypeId: validated.visitTypeId || null,
         start: validated.start,
         end: validated.end,
         title: `Consultation: ${patient.name}`,
         reason: validated.reason || null,
         notes: validated.notes || null,
         status: "PENDING",
+        createdById: validated.createdById || null,
+        isOnlineBooking: validated.isOnlineBooking || false,
       },
       include: {
         Patient: true,

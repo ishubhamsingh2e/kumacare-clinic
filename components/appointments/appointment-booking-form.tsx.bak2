@@ -234,7 +234,6 @@ export function AppointmentBookingForm({
           patientId: patient.id,
           clinicId: data.clinicId,
           doctorId: data.doctorId,
-          visitTypeId: data.visitTypeId || null,
           start: startDateTime.toISOString(),
           end: endDateTime.toISOString(),
           reason: data.reason,
@@ -326,51 +325,6 @@ export function AppointmentBookingForm({
               </Field>
             )}
           />
-
-          <Controller
-            control={control}
-            name="visitTypeId"
-            render={({ field, fieldState: { error } }) => (
-              <Field>
-                <FieldLabel>
-                  Visit Type
-                </FieldLabel>
-                <Select
-                  onValueChange={field.onChange}
-                  value={field.value}
-                  disabled={!selectedClinic || loadingVisitTypes}
-                >
-                  <SelectTrigger>
-                    <SelectValue
-                      placeholder={
-                        loadingVisitTypes ? "Loading..." : "Select visit type"
-                      }
-                    />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {visitTypes.length > 0 ? (
-                      visitTypes.map((vt) => (
-                        <SelectItem key={vt.id} value={vt.id}>
-                          {vt.name} - ₹{vt.defaultRate.toFixed(2)}
-                        </SelectItem>
-                      ))
-                    ) : (
-                      <SelectItem value="_no_types" disabled>
-                        No visit types available
-                      </SelectItem>
-                    )}
-                  </SelectContent>
-                </Select>
-                {selectedVisitTypeRate !== null && (
-                  <p className="text-sm text-muted-foreground mt-1">
-                    Rate: ₹{selectedVisitTypeRate.toFixed(2)}
-                  </p>
-                )}
-                {error && <FieldError>{error.message}</FieldError>}
-              </Field>
-            )}
-          />
-
 
           <Controller
             control={control}

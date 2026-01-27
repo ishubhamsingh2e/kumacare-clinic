@@ -2,12 +2,19 @@
 
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
-import { Plus, UserPlus, Crown, Users } from "lucide-react";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Plus, UserPlus, Crown, Users, FileText } from "lucide-react";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
 import { TeamMembersTable } from "@/components/team/team-members-table";
 import { InvitationsTable } from "@/components/team/invitations-table";
 import { InviteUserSheet } from "@/components/team/invite-user-sheet";
 import { TransferOwnershipDialog } from "@/components/team/transfer-ownership-dialog";
+import { VisitTypeManager } from "@/components/settings/visit-type-manager";
 
 interface Role {
   id: string;
@@ -80,6 +87,7 @@ export function UserManagementTab({
 }: UserManagementTabProps) {
   const [inviteSheetOpen, setInviteSheetOpen] = useState(false);
   const [transferDialogOpen, setTransferDialogOpen] = useState(false);
+  const [visitTypeSheetOpen, setVisitTypeSheetOpen] = useState(false);
 
   return (
     <div className="space-y-6">
@@ -98,7 +106,9 @@ export function UserManagementTab({
 
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Pending Invites</CardTitle>
+            <CardTitle className="text-sm font-medium">
+              Pending Invites
+            </CardTitle>
             <UserPlus className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
@@ -116,7 +126,7 @@ export function UserManagementTab({
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">
-              {currentUserRole?.name || "N/A"}
+              {currentUserRole?.name.replace("_", " ") || "N/A"}
             </div>
             <p className="text-xs text-muted-foreground">
               {isOwner ? "Owner" : "Team Member"}
@@ -126,7 +136,7 @@ export function UserManagementTab({
       </div>
 
       {/* Action Buttons */}
-      {(canInvite || canTransferOwnership) && (
+      {(canInvite || canTransferOwnership || canManage) && (
         <div className="flex gap-2 flex-wrap">
           {canInvite && (
             <Button onClick={() => setInviteSheetOpen(true)}>
@@ -134,7 +144,17 @@ export function UserManagementTab({
               Invite User
             </Button>
           )}
-          
+
+          {canManage && (
+            <Button
+              variant="outline"
+              onClick={() => setVisitTypeSheetOpen(true)}
+            >
+              <FileText className="h-4 w-4 mr-2" />
+              Manage Visit Types
+            </Button>
+          )}
+
           {canTransferOwnership && (
             <Button
               variant="outline"
@@ -202,6 +222,15 @@ export function UserManagementTab({
           onOpenChange={setTransferDialogOpen}
           members={members.filter((m) => m.userId !== currentUserId)}
           clinicName={clinic?.name || ""}
+        />
+      )}
+
+      {/* Visit Type Manager Sheet */}
+      {canManage && clinic && (
+        <VisitTypeManager
+          open={visitTypeSheetOpen}
+          onOpenChange={setVisitTypeSheetOpen}
+          clinic={{ id: clinic.id, name: clinic.name }}
         />
       )}
     </div>

@@ -11,17 +11,12 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
 import { Badge } from "@/components/ui/badge";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { MoreVertical, Crown, Edit, Trash2 } from "lucide-react";
+import { Crown, Edit, Trash2, IndianRupee } from "lucide-react";
 import { EditRoleDialog } from "./edit-role-dialog";
 import { RemoveMemberDialog } from "./remove-member-dialog";
+import { DoctorRateManager } from "@/components/settings/doctor-rate-manager";
 
 interface Role {
   id: string;
@@ -38,6 +33,7 @@ interface Member {
     name: string | null;
     email: string | null;
     image: string | null;
+    title?: string | null;
   };
   Role: Role;
   Clinic: {
@@ -67,13 +63,15 @@ export function TeamMembersTable({
 }: TeamMembersTableProps) {
   const [editingMember, setEditingMember] = useState<Member | null>(null);
   const [removingMember, setRemovingMember] = useState<Member | null>(null);
+  const [managingRatesForMember, setManagingRatesForMember] =
+    useState<Member | null>(null);
 
   const canManage = (member: Member) => {
     // Must have manage permission
     if (!hasManagePermission) {
       return false;
     }
-    
+
     // Owner can manage everyone except themselves
     if (isOwner && member.userId !== currentUserId) {
       return true;
@@ -107,6 +105,10 @@ export function TeamMembersTable({
       .slice(0, 2);
   };
 
+  const isDoctor = (member: Member) => {
+    return member.User.title === "Dr.";
+  };
+
   return (
     <>
       <div className="rounded-md border">
@@ -117,13 +119,16 @@ export function TeamMembersTable({
               <TableHead>Email</TableHead>
               <TableHead>Clinic</TableHead>
               <TableHead>Role</TableHead>
-              <TableHead className="w-[70px]"></TableHead>
+              <TableHead className="w-17.5"></TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
             {members.length === 0 ? (
               <TableRow>
-                <TableCell colSpan={5} className="text-center text-muted-foreground">
+                <TableCell
+                  colSpan={5}
+                  className="text-center text-muted-foreground"
+                >
                   No team members found
                 </TableCell>
               </TableRow>
@@ -165,28 +170,31 @@ export function TeamMembersTable({
                   </TableCell>
                   <TableCell>
                     {canManage(member) && (
-                      <DropdownMenu>
-                        <DropdownMenuTrigger asChild>
-                          <Button variant="ghost" size="icon-sm">
-                            <MoreVertical className="h-4 w-4" />
+                      <div className="flex items-center gap-2">
+                        <Button
+                          variant="outline"
+                          size="icon-sm"
+                          onClick={() => setEditingMember(member)}
+                        >
+                          <Edit className="h-4 w-4" />
+                        </Button>
+                        {isDoctor(member) && (
+                          <Button
+                            variant="outline"
+                            size="icon-sm"
+                            onClick={() => setManagingRatesForMember(member)}
+                          >
+                            <IndianRupee className="h-4 w-4" />
                           </Button>
-                        </DropdownMenuTrigger>
-                        <DropdownMenuContent align="end">
-                          <DropdownMenuItem
-                            onClick={() => setEditingMember(member)}
-                          >
-                            <Edit className="h-4 w-4 mr-2" />
-                            Change Role
-                          </DropdownMenuItem>
-                          <DropdownMenuItem
-                            className="text-destructive"
-                            onClick={() => setRemovingMember(member)}
-                          >
-                            <Trash2 className="h-4 w-4 mr-2" />
-                            Remove
-                          </DropdownMenuItem>
-                        </DropdownMenuContent>
-                      </DropdownMenu>
+                        )}
+                        <Button
+                          variant="outline"
+                          size="icon-sm"
+                          onClick={() => setRemovingMember(member)}
+                        >
+                          <Trash2 className="h-4 w-4 text-destructive" />
+                        </Button>
+                      </div>
                     )}
                   </TableCell>
                 </TableRow>
@@ -211,6 +219,20 @@ export function TeamMembersTable({
           open={!!removingMember}
           onOpenChange={(open) => !open && setRemovingMember(null)}
           member={removingMember}
+        />
+      )}
+
+      {managingRatesForMember && (
+        <DoctorRateManager
+          doctor={{
+            id: managingRatesForMember.userId,
+            name: managingRatesForMember.User.name,
+            email: managingRatesForMember.User.email,
+            title: managingRatesForMember.User.title ?? null,
+          }}
+          clinicId={managingRatesForMember.Clinic.id}
+          open={!!managingRatesForMember}
+          onOpenChange={(open) => !open && setManagingRatesForMember(null)}
         />
       )}
     </>

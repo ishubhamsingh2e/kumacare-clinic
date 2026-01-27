@@ -33,22 +33,30 @@ model ApiKey {
 }
 
 model Booking {
-  id           String        @id @default(cuid())
-  patientId    String
-  clinicId     String
-  start        DateTime
-  end          DateTime
-  title        String
-  status       BookingStatus @default(PENDING)
-  reason       String?
-  notes        String?
-  cancelReason String?
-  createdAt    DateTime      @default(now())
-  updatedAt    DateTime      @updatedAt
-  doctorId     String?
-  Clinic       Clinic        @relation(fields: [clinicId], references: [id], onDelete: Cascade)
-  User         User?         @relation(fields: [doctorId], references: [id])
-  Patient      Patient       @relation(fields: [patientId], references: [id], onDelete: Cascade)
+  id              String        @id @default(cuid())
+  patientId       String
+  clinicId        String
+  start           DateTime
+  end             DateTime
+  title           String
+  status          BookingStatus @default(PENDING)
+  reason          String?
+  notes           String?
+  cancelReason    String?
+  createdAt       DateTime      @default(now())
+  updatedAt       DateTime      @updatedAt
+  doctorId        String?
+  visitTypeId     String?
+  createdById     String?
+  isOnlineBooking Boolean       @default(false)
+  Clinic          Clinic        @relation(fields: [clinicId], references: [id], onDelete: Cascade)
+  User            User?         @relation("DoctorBookings", fields: [doctorId], references: [id])
+  Patient         Patient       @relation(fields: [patientId], references: [id], onDelete: Cascade)
+  VisitType       VisitType?    @relation(fields: [visitTypeId], references: [id], onDelete: SetNull)
+  CreatedBy       User?         @relation("CreatedBookings", fields: [createdById], references: [id], onDelete: SetNull)
+
+  @@index([visitTypeId])
+  @@index([createdById])
 }
 
 model Clinic {
@@ -95,8 +103,8 @@ model Clinic {
   DoctorSpecificOffDay DoctorSpecificOffDay[]
   Invitation           Invitation[]
   PrintSettings        PrintSettings[]
+  VisitType            VisitType[]
 }
-
 
 model ClinicMember {
   id        String   @id @default(cuid())
@@ -133,14 +141,14 @@ model DoctorAvailability {
 }
 
 model DoctorWeeklyOffDay {
-  id        String @id @default(cuid())
+  id        String   @id @default(cuid())
   doctorId  String
   clinicId  String
-  dayOfWeek Int    // 0-6 (Sunday-Saturday)
+  dayOfWeek Int // 0-6 (Sunday-Saturday)
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
-  Clinic    Clinic @relation(fields: [clinicId], references: [id], onDelete: Cascade)
-  User      User   @relation(fields: [doctorId], references: [id], onDelete: Cascade)
+  Clinic    Clinic   @relation(fields: [clinicId], references: [id], onDelete: Cascade)
+  User      User     @relation(fields: [doctorId], references: [id], onDelete: Cascade)
 
   @@unique([doctorId, clinicId, dayOfWeek])
   @@index([doctorId, clinicId])
@@ -151,7 +159,7 @@ model DoctorSpecificOffDay {
   doctorId  String
   clinicId  String
   date      DateTime // Specific date (time will be set to 00:00:00)
-  reason    String?  // Optional reason (e.g., "Vacation", "Holiday", "Personal")
+  reason    String? // Optional reason (e.g., "Vacation", "Holiday", "Personal")
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
   Clinic    Clinic   @relation(fields: [clinicId], references: [id], onDelete: Cascade)
@@ -260,14 +268,14 @@ model Session {
 }
 
 model User {
-  id                   String                @id @default(cuid())
+  id                   String                 @id @default(cuid())
   name                 String?
-  email                String?               @unique
+  email                String?                @unique
   emailVerified        DateTime?
   image                String?
   password             String?
   passwordResetExpires DateTime?
-  passwordResetToken   String?               @unique
+  passwordResetToken   String?                @unique
   defaultClinicId      String?
   address              String?
   dob                  DateTime?
@@ -275,13 +283,14 @@ model User {
   phone                String?
   signatureUrl         String?
   title                String?
-  slotDurationInMin    Int?                  @default(30)
-  createdAt            DateTime              @default(now())
-  updatedAt            DateTime              @updatedAt
+  slotDurationInMin    Int?                   @default(30)
+  createdAt            DateTime               @default(now())
+  updatedAt            DateTime               @updatedAt
   Account              Account[]
-  Booking              Booking[]
+  DoctorBookings       Booking[]              @relation("DoctorBookings")
+  CreatedBookings      Booking[]              @relation("CreatedBookings")
   Clinic               Clinic[]
-  memberships          ClinicMember[]        @relation("memberships")
+  memberships          ClinicMember[]         @relation("memberships")
   DoctorAvailability   DoctorAvailability[]
   DoctorWeeklyOffDay   DoctorWeeklyOffDay[]
   DoctorSpecificOffDay DoctorSpecificOffDay[]
@@ -293,6 +302,7 @@ model User {
   Medicine             Medicine[]
   MedicineGroup        MedicineGroup[]
   PrintSettings        PrintSettings[]
+  DoctorVisitRate      DoctorVisitRate[]
 
   @@index([defaultClinicId])
 }
@@ -303,6 +313,41 @@ model VerificationToken {
   expires    DateTime
 
   @@unique([identifier, token])
+}
+
+model VisitType {
+  id              String            @id @default(cuid())
+  name            String
+  description     String?
+  defaultRate     Float             @default(0)
+  isActive        Boolean           @default(true)
+  isDefault       Boolean           @default(false)
+  clinicId        String
+  createdAt       DateTime          @default(now())
+  updatedAt       DateTime          @updatedAt
+  Clinic          Clinic            @relation(fields: [clinicId], references: [id], onDelete: Cascade)
+  Bookings        Booking[]
+  DoctorVisitRate DoctorVisitRate[]
+
+  @@unique([clinicId, name])
+  @@index([clinicId])
+  @@index([isDefault])
+}
+
+model DoctorVisitRate {
+  id          String    @id @default(cuid())
+  doctorId    String
+  visitTypeId String
+  rate        Float
+  isActive    Boolean   @default(true)
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+  Doctor      User      @relation(fields: [doctorId], references: [id], onDelete: Cascade)
+  VisitType   VisitType @relation(fields: [visitTypeId], references: [id], onDelete: Cascade)
+
+  @@unique([doctorId, visitTypeId])
+  @@index([doctorId])
+  @@index([visitTypeId])
 }
 
 enum BloodGroup {
@@ -338,20 +383,20 @@ enum BookingStatus {
 }
 
 model Log {
-  id        String   @id @default(cuid())
-  level     LogLevel @default(INFO)
-  type      LogType  @default(SYSTEM)
-  message   String
-  metadata  Json?
-  userId    String?
-  ip        String?
-  userAgent String?
-  path      String?
-  method    String?
+  id         String   @id @default(cuid())
+  level      LogLevel @default(INFO)
+  type       LogType  @default(SYSTEM)
+  message    String
+  metadata   Json?
+  userId     String?
+  ip         String?
+  userAgent  String?
+  path       String?
+  method     String?
   statusCode Int?
-  duration  Int?     // in milliseconds
-  createdAt DateTime @default(now())
-  User      User?    @relation(fields: [userId], references: [id], onDelete: SetNull)
+  duration   Int? // in milliseconds
+  createdAt  DateTime @default(now())
+  User       User?    @relation(fields: [userId], references: [id], onDelete: SetNull)
 
   @@index([level, type, createdAt])
   @@index([userId])
@@ -375,24 +420,24 @@ enum LogType {
 }
 
 model Medicine {
-  id             String   @id @default(cuid())
-  doctorId       String
-  type           String   // e.g., "Tablet", "Syrup", "Injection", "Capsule"
-  medicineName   String
-  dosage         String?  // e.g., "500mg", "10ml"
-  administration String?  // e.g., "Oral", "IV", "IM"
-  unit           String?  // e.g., "mg", "ml", "units"
-  time           String?  // e.g., "Morning", "Evening", "Night"
-  when           String?  // e.g., "Before meals", "After meals", "Empty stomach"
-  where          String?  // e.g., "Left arm", "Right thigh"
-  genericName    String?
-  frequency      String?  // e.g., "Once daily", "Twice daily", "As needed"
-  duration       String?  // e.g., "5 days", "1 week", "1 month"
-  qty            String?  // Quantity
-  notes          String?
-  createdAt      DateTime @default(now())
-  updatedAt      DateTime @updatedAt
-  User           User     @relation(fields: [doctorId], references: [id], onDelete: Cascade)
+  id                String              @id @default(cuid())
+  doctorId          String
+  type              String // e.g., "Tablet", "Syrup", "Injection", "Capsule"
+  medicineName      String
+  dosage            String? // e.g., "500mg", "10ml"
+  administration    String? // e.g., "Oral", "IV", "IM"
+  unit              String? // e.g., "mg", "ml", "units"
+  time              String? // e.g., "Morning", "Evening", "Night"
+  when              String? // e.g., "Before meals", "After meals", "Empty stomach"
+  where             String? // e.g., "Left arm", "Right thigh"
+  genericName       String?
+  frequency         String? // e.g., "Once daily", "Twice daily", "As needed"
+  duration          String? // e.g., "5 days", "1 week", "1 month"
+  qty               String? // Quantity
+  notes             String?
+  createdAt         DateTime            @default(now())
+  updatedAt         DateTime            @updatedAt
+  User              User                @relation(fields: [doctorId], references: [id], onDelete: Cascade)
   MedicineGroupItem MedicineGroupItem[]
 
   @@index([doctorId])
@@ -400,24 +445,24 @@ model Medicine {
 }
 
 model MedicineGroup {
-  id        String   @id @default(cuid())
-  doctorId  String
-  name      String
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-  User      User     @relation(fields: [doctorId], references: [id], onDelete: Cascade)
+  id                String              @id @default(cuid())
+  doctorId          String
+  name              String
+  createdAt         DateTime            @default(now())
+  updatedAt         DateTime            @updatedAt
+  User              User                @relation(fields: [doctorId], references: [id], onDelete: Cascade)
   MedicineGroupItem MedicineGroupItem[]
 
   @@index([doctorId])
 }
 
 model MedicineGroupItem {
-  id             String         @id @default(cuid())
-  groupId        String
-  medicineId     String
-  createdAt      DateTime       @default(now())
-  MedicineGroup  MedicineGroup  @relation(fields: [groupId], references: [id], onDelete: Cascade)
-  Medicine       Medicine       @relation(fields: [medicineId], references: [id], onDelete: Cascade)
+  id            String        @id @default(cuid())
+  groupId       String
+  medicineId    String
+  createdAt     DateTime      @default(now())
+  MedicineGroup MedicineGroup @relation(fields: [groupId], references: [id], onDelete: Cascade)
+  Medicine      Medicine      @relation(fields: [medicineId], references: [id], onDelete: Cascade)
 
   @@unique([groupId, medicineId])
   @@index([groupId])
@@ -425,50 +470,50 @@ model MedicineGroupItem {
 }
 
 model PrintSettings {
-  id                    String   @id @default(cuid())
-  doctorId              String
-  clinicId              String
-  
+  id       String @id @default(cuid())
+  doctorId String
+  clinicId String
+
   // Margins (in mm)
-  marginTop             Float    @default(20)
-  marginBottom          Float    @default(20)
-  marginLeft            Float    @default(15)
-  marginRight           Float    @default(15)
-  
+  marginTop    Float @default(20)
+  marginBottom Float @default(20)
+  marginLeft   Float @default(15)
+  marginRight  Float @default(15)
+
   // Template
-  templateType          String   @default("classic")
-  
+  templateType String @default("classic")
+
   // Header/Footer
-  useCustomHeader       Boolean  @default(false)
-  useCustomFooter       Boolean  @default(false)
-  headerImageUrl        String?
-  footerImageUrl        String?
-  headerFirstPageOnly   Boolean  @default(false)
-  
+  useCustomHeader     Boolean @default(false)
+  useCustomFooter     Boolean @default(false)
+  headerImageUrl      String?
+  footerImageUrl      String?
+  headerFirstPageOnly Boolean @default(false)
+
   // Watermark
-  enableWatermark       Boolean  @default(false)
-  watermarkImageUrl     String?
-  watermarkText         String?
-  watermarkOpacity      Float    @default(0.1)
-  
+  enableWatermark   Boolean @default(false)
+  watermarkImageUrl String?
+  watermarkText     String?
+  watermarkOpacity  Float   @default(0.1)
+
   // Signature
-  doctorSignatureUrl    String?
-  
+  doctorSignatureUrl String?
+
   // Patient Info (JSON array of field names)
-  patientInfoFields     Json     @default("[]")
-  
+  patientInfoFields Json @default("[]")
+
   // Doctor Info (JSON array of field names)
-  doctorInfoFields      Json     @default("[]")
-  
+  doctorInfoFields Json @default("[]")
+
   // Rx Settings
-  useGenericName        Boolean  @default(false)
-  
-  createdAt             DateTime @default(now())
-  updatedAt             DateTime @updatedAt
-  
-  doctor                User     @relation(fields: [doctorId], references: [id], onDelete: Cascade)
-  clinic                Clinic   @relation(fields: [clinicId], references: [id], onDelete: Cascade)
-  
+  useGenericName Boolean @default(false)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  doctor User   @relation(fields: [doctorId], references: [id], onDelete: Cascade)
+  clinic Clinic @relation(fields: [clinicId], references: [id], onDelete: Cascade)
+
   @@unique([doctorId, clinicId])
   @@index([doctorId])
   @@index([clinicId])

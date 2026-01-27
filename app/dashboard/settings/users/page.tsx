@@ -80,6 +80,7 @@ export default async function UserManagementPage() {
             name: true,
             email: true,
             image: true,
+            title: true,
           },
         },
         Role: {

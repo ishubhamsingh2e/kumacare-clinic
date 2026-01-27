@@ -188,33 +188,6 @@ export function AppointmentBookingForm({
     }
   }, [selectedDoctor, selectedDate, selectedClinic, setValue]);
 
-  // Update effective rate when visit type or doctor changes
-  useEffect(() => {
-    if (selectedVisitType && selectedDoctor && selectedClinic) {
-      const fetchRate = async () => {
-        try {
-          const response = await fetch(
-            `/api/settings/doctor-rates?doctorId=${selectedDoctor}&clinicId=${selectedClinic}`,
-          );
-          const rates = await response.json();
-          const matchingRate = rates.find((r: any) => r.visitType.id === selectedVisitType);
-          if (matchingRate) {
-            setSelectedVisitTypeRate(matchingRate.effectiveRate);
-          }
-        } catch (error) {
-          console.error("Error fetching rate:", error);
-        }
-      };
-      fetchRate();
-    } else if (selectedVisitType) {
-      const vt = visitTypes.find((v) => v.id === selectedVisitType);
-      setSelectedVisitTypeRate(vt?.defaultRate ?? null);
-    } else {
-      setSelectedVisitTypeRate(null);
-    }
-  }, [selectedVisitType, selectedDoctor, selectedClinic, visitTypes]);
-
-
   const onSubmit = async (data: AppointmentBookingData) => {
     try {
       const [startTime, endTime] = data.timeSlot.split(" - ");
@@ -234,7 +207,6 @@ export function AppointmentBookingForm({
           patientId: patient.id,
           clinicId: data.clinicId,
           doctorId: data.doctorId,
-          visitTypeId: data.visitTypeId || null,
           start: startDateTime.toISOString(),
           end: endDateTime.toISOString(),
           reason: data.reason,
@@ -326,51 +298,6 @@ export function AppointmentBookingForm({
               </Field>
             )}
           />
-
-          <Controller
-            control={control}
-            name="visitTypeId"
-            render={({ field, fieldState: { error } }) => (
-              <Field>
-                <FieldLabel>
-                  Visit Type
-                </FieldLabel>
-                <Select
-                  onValueChange={field.onChange}
-                  value={field.value}
-                  disabled={!selectedClinic || loadingVisitTypes}
-                >
-                  <SelectTrigger>
-                    <SelectValue
-                      placeholder={
-                        loadingVisitTypes ? "Loading..." : "Select visit type"
-                      }
-                    />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {visitTypes.length > 0 ? (
-                      visitTypes.map((vt) => (
-                        <SelectItem key={vt.id} value={vt.id}>
-                          {vt.name} - ₹{vt.defaultRate.toFixed(2)}
-                        </SelectItem>
-                      ))
-                    ) : (
-                      <SelectItem value="_no_types" disabled>
-                        No visit types available
-                      </SelectItem>
-                    )}
-                  </SelectContent>
-                </Select>
-                {selectedVisitTypeRate !== null && (
-                  <p className="text-sm text-muted-foreground mt-1">
-                    Rate: ₹{selectedVisitTypeRate.toFixed(2)}
-                  </p>
-                )}
-                {error && <FieldError>{error.message}</FieldError>}
-              </Field>
-            )}
-          />
-
 
           <Controller
             control={control}

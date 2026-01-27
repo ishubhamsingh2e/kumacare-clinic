@@ -35,10 +35,15 @@ export const PERMISSIONS = {
   TEAM_MANAGE: "team:manage",
   TEAM_TRANSFER_OWNERSHIP: "team:transfer_ownership",
 
+  // Settings
+  SETTINGS_MANAGE: "settings:manage",
+  VISIT_TYPE_MANAGE: "visit_type:manage",
+  DOCTOR_RATE_MANAGE: "doctor_rate:manage",
+
   // Special Permissions
   USER_MANAGE: "user:manage",
   SYSTEM_ADMIN: "system:admin",
-  
+
   // Role Identifiers
   IS_DOCTOR: "role:doctor",
 } as const;
